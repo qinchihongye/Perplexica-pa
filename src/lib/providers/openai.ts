@@ -1,6 +1,7 @@
 import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
 import { getOpenaiApiKey } from '../../config';
 import logger from '../../utils/logger';
+import { getOpenaiBaseUrl } from '../../config';
 
 export const loadOpenAIChatModels = async () => {
   const openAIApiKey = getOpenaiApiKey();
@@ -9,12 +10,24 @@ export const loadOpenAIChatModels = async () => {
 
   try {
     const chatModels = {
+      'qwen-long': {
+        displayName: 'Qwen-Long',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'qwen-long',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
       'gpt-3.5-turbo': {
         displayName: 'GPT-3.5 Turbo',
         model: new ChatOpenAI({
           openAIApiKey,
           modelName: 'gpt-3.5-turbo',
           temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
         }),
       },
       'gpt-4': {
@@ -23,6 +36,8 @@ export const loadOpenAIChatModels = async () => {
           openAIApiKey,
           modelName: 'gpt-4',
           temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
         }),
       },
       'gpt-4-turbo': {
@@ -31,6 +46,8 @@ export const loadOpenAIChatModels = async () => {
           openAIApiKey,
           modelName: 'gpt-4-turbo',
           temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
         }),
       },
       'gpt-4o': {
@@ -39,6 +56,8 @@ export const loadOpenAIChatModels = async () => {
           openAIApiKey,
           modelName: 'gpt-4o',
           temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
         }),
       },
       'gpt-4o-mini': {
@@ -47,8 +66,61 @@ export const loadOpenAIChatModels = async () => {
           openAIApiKey,
           modelName: 'gpt-4o-mini',
           temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
         }),
       },
+      'Qwen/Qwen2-72B-Instruct': {
+        displayName: 'qwen72b-instruct',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'Qwen/Qwen2-72B-Instruct',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
+      'moonshot-v1-8k': {
+        displayName: 'moonshot-v1-8k',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'moonshot-v1-8k',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
+      'moonshot-v1-32k': {
+        displayName: 'moonshot-v1-32k',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'moonshot-v1-32k',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
+      'moonshot-v1-128k': {
+        displayName: 'moonshot-v1-128k',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'moonshot-v1-128k',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
+      'deepseek-chat': {
+        displayName: 'deepseek-chat',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'deepseek-chat',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
+
     };
 
     return chatModels;

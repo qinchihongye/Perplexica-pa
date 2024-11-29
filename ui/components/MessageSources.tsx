@@ -43,7 +43,8 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                 </div>
               ) : (
                 <img
-                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  src='/favicon.ico'
                   width={16}
                   height={16}
                   alt="favicon"
@@ -74,7 +75,8 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                 </div>
               ) : (
                 <img
-                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  src='/favicon.ico'
                   width={16}
                   height={16}
                   alt="favicon"
@@ -124,7 +126,8 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                               </div>
                             ) : (
                               <img
-                                src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                                //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                                src='/favicon.ico'
                                 width={16}
                                 height={16}
                                 alt="favicon"

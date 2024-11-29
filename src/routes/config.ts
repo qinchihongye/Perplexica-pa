@@ -12,6 +12,8 @@ import {
   updateConfig,
 } from '../config';
 import logger from '../utils/logger';
+import {getOpenaiBaseUrl} from '../config';
+import {getSelfSearchUrl} from '../config';
 
 const router = express.Router();
 
@@ -55,6 +57,9 @@ router.get('/', async (_, res) => {
     config['groqApiKey'] = getGroqApiKey();
     config['geminiApiKey'] = getGeminiApiKey();
     
+    config['openaiBaseUrl'] = getOpenaiBaseUrl();
+    config['selfSearchUrl'] = getSelfSearchUrl(); 
+
     res.status(200).json(config);
   } catch (err: any) {
     res.status(500).json({ message: 'An error has occurred.' });
@@ -74,6 +79,8 @@ router.post('/', async (req, res) => {
     },
     API_ENDPOINTS: {
       OLLAMA: config.ollamaApiUrl,
+      OPENAIBASEURL: config.openaiBaseUrl,
+      SELFSEARCHURL: config.selfSearchUrl,
     },
   };
 

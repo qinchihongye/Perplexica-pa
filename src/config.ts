@@ -9,6 +9,7 @@ interface Config {
     PORT: number;
     SIMILARITY_MEASURE: string;
     KEEP_ALIVE: string;
+    PYPORT: number;
   };
   API_KEYS: {
     OPENAI: string;
@@ -19,6 +20,8 @@ interface Config {
   API_ENDPOINTS: {
     SEARXNG: string;
     OLLAMA: string;
+    OPENAIBASEURL: string;
+    SELFSEARCHURL: string;
   };
 }
 
@@ -50,6 +53,12 @@ export const getSearxngApiEndpoint = () =>
   process.env.SEARXNG_API_URL || loadConfig().API_ENDPOINTS.SEARXNG;
 
 export const getOllamaApiEndpoint = () => loadConfig().API_ENDPOINTS.OLLAMA;
+
+export const getOpenaiBaseUrl = () => loadConfig().API_ENDPOINTS.OPENAIBASEURL;
+
+export const getSelfSearchUrl = () => loadConfig().API_ENDPOINTS.SELFSEARCHURL;
+
+export const getPyPort = () => loadConfig().GENERAL.PYPORT;
 
 export const updateConfig = (config: RecursivePartial<Config>) => {
   const currentConfig = loadConfig();

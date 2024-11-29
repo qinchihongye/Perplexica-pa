@@ -10,6 +10,8 @@ COPY yarn.lock /home/perplexica/
 
 RUN mkdir /home/perplexica/data
 RUN mkdir /home/perplexica/uploads
+RUN apt-get update
+RUN apt-get install -y vim
 
 RUN yarn install --frozen-lockfile --network-timeout 600000
 RUN yarn build

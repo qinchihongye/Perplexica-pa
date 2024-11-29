@@ -65,6 +65,8 @@ interface SettingsType {
   anthropicApiKey: string;
   geminiApiKey: string;
   ollamaApiUrl: string;
+  openaiBaseUrl: string;
+  selfSearchUrl: string;
 }
 
 const SettingsDialog = ({
@@ -415,6 +417,22 @@ const SettingsDialog = ({
                     )}
                     <div className="flex flex-col space-y-1">
                       <p className="text-black/70 dark:text-white/70 text-sm">
+                        OpenAI Base Url
+                      </p>
+                      <Input
+                        type="text"
+                        placeholder="OpenAI Base Url"
+                        defaultValue={config.openaiBaseUrl}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            openaiBaseUrl: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-black/70 dark:text-white/70 text-sm">
                         OpenAI API Key
                       </p>
                       <Input
@@ -492,6 +510,22 @@ const SettingsDialog = ({
                           })
                         }
                       />
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-black/70 dark:text-white/70 text-sm">
+                        Self Search Url
+                      </p>
+                      <Input
+                        type="text"
+                        placeholder="Self Search Url"
+                        defaultValue={config.selfSearchUrl}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            selfSearchUrl: e.target.value,
+                          })
+                        }
+                        />
                     </div>
                   </div>
                 )}

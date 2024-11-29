@@ -1,0 +1,8 @@
+requests
+fastapi
+uvicorn
+toml
+openai
+pydantic
+loguru
+aiohttp
