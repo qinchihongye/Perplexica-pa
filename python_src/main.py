@@ -14,28 +14,31 @@ from loguru import logger
 import asyncio
 
 # 读取 config.toml 文件
-with open('config.toml', 'r') as file:
+with open("config.toml", "r") as file:
     config = toml.load(file)
 
 # 读取配置
-retrieval_url = config['GENERAL']['RETRIEVALURL']
-pyport = config['GENERAL']['PYPORT']
-time_out = config['GENERAL']['TIMEOUT']
+retrieval_url = config["GENERAL"]["RETRIEVALURL"]
+pyport = config["GENERAL"]["PYPORT"]
+time_out = config["GENERAL"]["TIMEOUT"]
 
 
 class Query(BaseModel):
-    query:str
+    query: str
 
 
 class QueryRequest(BaseModel):
     query_list: List[str]
 
+
 # 创建两个 FastAPI 实例
 app = FastAPI()
+
 
 @app.get("/health")
 async def healthcheck():
     return {"message": "success"}
+
 
 # query改写router
 @app.post("/rewrite_query")
@@ -44,12 +47,11 @@ async def rewrite(query: Query):
     try:
         rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
         query_list = await post_completions(rewrite_query_prompt_new)
-        query_combine = [
-            query_str for query_str in eval(query_list)
-        ]
+        query_combine = [query_str for query_str in eval(query_list)]
         return {"message": "success", "query_combine": query_combine}
     except Exception as e:
         return {"code": -1, "error": e}
+
 
 # query检索召回 节点
 # @app.post("/retrieval")
@@ -79,7 +81,10 @@ async def retrieval(query_list: QueryRequest):
         retrieve_class = Zhihuretrieve(retrieval_url)
 
         # 使用 asyncio.gather 并发执行多个异步任务
-        tasks = [retrieve_class.retrieve(sub_query,time_out) for sub_query in query_list.query_list]
+        tasks = [
+            retrieve_class.retrieve(sub_query, time_out)
+            for sub_query in query_list.query_list
+        ]
         results = await asyncio.gather(*tasks)
         # logger.info(f"results: {results}")
         # 将所有结果合并到一个列表中

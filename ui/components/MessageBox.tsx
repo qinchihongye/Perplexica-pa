@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { MutableRefObject, useEffect, useState } from 'react';
 import { Message } from './ChatWindow';
+import Think from './Think';
 import { cn } from '@/lib/utils';
 import {
   BookCopy,
@@ -68,10 +69,17 @@ const MessageBox = ({
   return (
     <div>
       {message.role === 'user' && (
-        <div className={cn('w-full', messageIndex === 0 ? 'pt-16' : 'pt-8')}>
-          <h2 className="text-black dark:text-white font-medium text-3xl lg:w-9/12">
-            {message.content}
-          </h2>
+        <div>
+          <div className={cn('w-full', messageIndex === 0 ? 'pt-16' : 'pt-8')}>
+            <h2 className="text-black dark:text-white font-medium text-3xl lg:w-9/12">
+              {message.content}
+            </h2>
+          </div>
+          {isLast && loading ? (
+            <Think initialQuery={message.content}></Think>
+          ) : (
+            ''
+          )}
         </div>
       )}
 

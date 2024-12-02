@@ -7,6 +7,14 @@ const nextConfig = {
       },
     ],
   },
+  rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_PY_API}:${process.env.NEXT_PUBLIC_PY_PORT}/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -5,6 +5,7 @@ import MessageInput from './MessageInput';
 import { File, Message } from './ChatWindow';
 import MessageBox from './MessageBox';
 import MessageBoxLoading from './MessageBoxLoading';
+import Think from './Think';
 
 const Chat = ({
   loading,
@@ -62,6 +63,13 @@ const Chat = ({
 
         return (
           <Fragment key={msg.messageId}>
+            {/* {isLast && loading ? (
+              <Think
+                initialQuery={messages[messages.length - 1].content}
+              ></Think>
+            ) : (
+              ''
+            )} */}
             <MessageBox
               key={i}
               message={msg}
