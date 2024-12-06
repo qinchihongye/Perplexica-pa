@@ -1,5 +1,5 @@
 import toml
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from multiprocessing import Process
 from typing import List
 from pydantic import BaseModel
@@ -96,6 +96,48 @@ async def retrieval(query_list: QueryRequest):
         return {"results": final_nodes, "suggestions": []}
     except Exception as e:
         return {"code": -1, "error": str(e)}
+
+
+@app.websocket("/rewrite_retrieval")  # WebSocket 接口
+@measure_time
+async def retrieval(websocket: WebSocket):
+    await websocket.accept()  # 用于接受 WebSocket 连接
+    try:
+        query_data = await websocket.receive_json()
+        logger.info(f"body of query: {query_data}")
+        query = Query(**query_data).query
+
+        """query 改写"""
+        rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
+        query_list = await post_completions(rewrite_query_prompt_new)
+        query_combine = [query_str for query_str in eval(query_list)]
+        await websocket.send_json({"message": "success", "query_combine": query_combine, "end_flag": 0})
+
+        """异步检索"""
+        query_list = query_combine
+        logger.info(f"query list to retrieval: {query_list}")
+        retrieve_class = Zhihuretrieve(retrieval_url)
+
+        total_results = []
+        #### 使用 asyncio.gather 并发执行多个异步任务
+        tasks = [
+            retrieve_class.retrieve(sub_query, time_out)
+            for sub_query in query_list
+        ]
+        #### 逐个处理任务结果并发送给客户端,在处理完每个任务后立即将结果通过 websocket.send_json() 发送给客户端
+        for task in asyncio.as_completed(tasks):
+            result = await task
+            total_results += result
+            await websocket.send_json({"results": result, "suggestions":[], "end_flag": 0})
+        #### 去重
+        final_nodes = remove_duplicates(total_results)
+        #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
+        await websocket.send_json({"results": final_nodes, "suggestions": [], "end_flag": 1})
+
+    except Exception as e:
+        await websocket.send_json({"code": -1, "error": str(e)})
+    finally:
+        await websocket.close()
 
 
 # 启动应用
