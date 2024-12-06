@@ -6,3 +6,4 @@ openai
 pydantic
 loguru
 aiohttp
+websockets
