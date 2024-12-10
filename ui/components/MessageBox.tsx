@@ -19,6 +19,7 @@ import Rewrite from './MessageActions/Rewrite';
 import MessageSources from './MessageSources';
 import SearchImages from './SearchImages';
 import SearchVideos from './SearchVideos';
+import Step from './Step';
 import { useSpeech } from 'react-text-to-speech';
 
 const MessageBox = ({
@@ -93,6 +94,11 @@ const MessageBox = ({
               <div className="flex flex-col space-y-2">
                 <div className="flex flex-row items-center space-x-2">
                   <BookCopy className="text-black dark:text-white" size={20} />
+                  {/* <Step
+                    isLast={isLast}
+                    loading={loading}
+                    query={message.content}
+                  ></Step> */}
                   <h3 className="text-black dark:text-white font-medium text-xl">
                     Sources
                   </h3>

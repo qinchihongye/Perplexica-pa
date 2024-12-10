@@ -1,75 +1,89 @@
 import React, { useState, useEffect } from 'react';
+import { Disclosure, Button, TabPanel } from '@headlessui/react';
 
-// 定义 Message 接口，假设 data 是一个包含步骤信息的对象数组
 interface Step {
   title: string;
   details: string;
 }
 
 interface Message {
-  data: Step[];
+  message: string;
+  query_combine?: string[];
+  results?: string[];
+  suggestions?: string[];
+  end_flag: string;
 }
 
-// QueryList 组件
-const QueryList: React.FC<{ message: Message }> = ({ message }) => {
-  // 状态：用于存储每个步骤的展开状态
-  const [expandedSteps, setExpandedSteps] = useState<number[]>([]);
+const Step: React.FC<{ isLast: boolean; loading: boolean; query: string }> = ({
+  isLast,
+  loading,
+  query,
+}) => {
+  const [message, setMessage] = useState<Message[]>([]);
 
-  // 切换步骤的展开状态
-  const toggleStep = (index: number) => {
-    setExpandedSteps((prevExpanded) =>
-      prevExpanded.includes(index)
-        ? prevExpanded.filter((i) => i !== index)
-        : [...prevExpanded, index],
-    );
-  };
-
-  // 当 message 发生变化时，重置展开状态
   useEffect(() => {
-    setExpandedSteps([]);
-  }, [message]);
+    const ws = new WebSocket(`ws://api/rewrite_retrieval`);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+      // 假设从服务器接收到的数据是 Message 类型的数组
+      setMessage(JSON.parse(event.data));
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket closed');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {message.data.map((step, index) => (
-        <div
-          key={index}
-          style={{
-            marginBottom: '10px',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-          }}
-        >
-          <button
-            onClick={() => toggleStep(index)}
-            style={{
-              width: '100%',
-              textAlign: 'left',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {step.title}
-            {expandedSteps.includes(index) ? ' ▼' : ' ▶'}
-          </button>
-          {expandedSteps.includes(index) && (
-            <div
-              style={{
-                marginTop: '10px',
-                padding: '10px',
-                backgroundColor: '#f9f9f9',
-                borderRadius: '4px',
-              }}
-            >
-              <pre>{step.details}</pre>
-            </div>
+      {message.map((step, index) => (
+        <Disclosure key={index}>
+          {({ open }) => (
+            <>
+              <Disclosure.Button
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'none',
+                  cursor: 'pointer',
+                  padding: '10px',
+                  marginBottom: '10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                }}
+              >
+                {step.message}
+                <span>{open ? ' ▼' : ' ▶'}</span>
+              </Disclosure.Button>
+              <Disclosure.Panel
+                style={{
+                  marginTop: '10px',
+                  padding: '10px',
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: '4px',
+                }}
+              >
+                <pre>{step.results?.join('\n') || ''}</pre>
+              </Disclosure.Panel>
+            </>
           )}
-        </div>
+        </Disclosure>
       ))}
     </div>
   );
 };
 
-export default QueryList;
+export default Step;

@@ -1,5 +1,9 @@
+import traceback
+import json
+
 import toml
 from fastapi import FastAPI, WebSocket
+from starlette.websockets import WebSocketDisconnect
 from multiprocessing import Process
 from typing import List
 from pydantic import BaseModel
@@ -47,10 +51,11 @@ async def rewrite(query: Query):
     try:
         rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
         query_list = await post_completions(rewrite_query_prompt_new)
-        query_combine = [query_str for query_str in eval(query_list)]
+        query_combine = [query_str for query_str in json.loads(query_list)]
         return {"message": "success", "query_combine": query_combine}
     except Exception as e:
-        return {"code": -1, "error": e}
+        logger.error(f"{e}: {traceback.format_exc}")
+        return {"code": -1, "error": f"{e}: {traceback.format_exc}"}
 
 
 # query检索召回 节点
@@ -73,45 +78,64 @@ async def rewrite(query: Query):
 #         return {"code": -1, "error": e}
 
 
+# @app.post("/retrieval")
+# @measure_time
+# async def retrieval(query_list: QueryRequest):
+#     try:
+#         logger.info(f"body of query_list: {query_list.query_list}")
+#         retrieve_class = Zhihuretrieve(retrieval_url)
+
+#         # 使用 asyncio.gather 并发执行多个异步任务
+#         tasks = [
+#             retrieve_class.retrieve(sub_query, time_out)
+#             for sub_query in query_list.query_list
+#         ]
+#         results = await asyncio.gather(*tasks)
+#         # logger.info(f"results: {results}")
+#         # 将所有结果合并到一个列表中
+#         node_list = [node for sublist in results for node in sublist]
+
+#         # node去重操作
+#         final_nodes = remove_duplicates(node_list)
+
+#         return {"results": final_nodes, "suggestions": []}
+#     except Exception as e:
+#         return {"code": -1, "error": str(e)}
+
+
+active_websockets: list[WebSocket] = []
+
+
+async def notify_data_change(new_data: dict):
+    # 遍历所有活跃的WebSocket连接并发送新数据
+    disconnected_websockets = []
+    for ws in active_websockets:
+        try:
+            await ws.send_text(json.dumps(new_data, ensure_ascii=False))
+        except Exception as e:
+            # 如果发送失败，可能是因为连接已关闭
+            disconnected_websockets.append(ws)
+            print(f"连接失败：{e}")
+
+    # 移除所有已断开的连接
+    for ws in disconnected_websockets:
+        active_websockets.remove(ws)
+
+
 @app.post("/retrieval")
 @measure_time
 async def retrieval(query_list: QueryRequest):
     try:
-        logger.info(f"body of query_list: {query_list.query_list}")
-        retrieve_class = Zhihuretrieve(retrieval_url)
-
-        # 使用 asyncio.gather 并发执行多个异步任务
-        tasks = [
-            retrieve_class.retrieve(sub_query, time_out)
-            for sub_query in query_list.query_list
-        ]
-        results = await asyncio.gather(*tasks)
-        # logger.info(f"results: {results}")
-        # 将所有结果合并到一个列表中
-        node_list = [node for sublist in results for node in sublist]
-
-        # node去重操作
-        final_nodes = remove_duplicates(node_list)
-
-        return {"results": final_nodes, "suggestions": []}
-    except Exception as e:
-        return {"code": -1, "error": str(e)}
-
-
-@app.websocket("/rewrite_retrieval")  # WebSocket 接口
-@measure_time
-async def retrieval(websocket: WebSocket):
-    await websocket.accept()  # 用于接受 WebSocket 连接
-    try:
-        query_data = await websocket.receive_json()
-        logger.info(f"body of query: {query_data}")
-        query = Query(**query_data).query
+        logger.info(f"body of query: {query_list}")
+        query = query_list.query_list[0]
 
         """query 改写"""
         rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
         query_list = await post_completions(rewrite_query_prompt_new)
         query_combine = [query_str for query_str in eval(query_list)]
-        await websocket.send_json({"message": "success", "query_combine": query_combine, "end_flag": 0})
+        await notify_data_change(
+            {"message": "success", "query_combine": query_combine, "end_flag": 0}
+        )
 
         """异步检索"""
         query_list = query_combine
@@ -121,23 +145,45 @@ async def retrieval(websocket: WebSocket):
         total_results = []
         #### 使用 asyncio.gather 并发执行多个异步任务
         tasks = [
-            retrieve_class.retrieve(sub_query, time_out)
-            for sub_query in query_list
+            retrieve_class.retrieve(sub_query, time_out) for sub_query in query_list
         ]
         #### 逐个处理任务结果并发送给客户端,在处理完每个任务后立即将结果通过 websocket.send_json() 发送给客户端
         for task in asyncio.as_completed(tasks):
             result = await task
             total_results += result
-            await websocket.send_json({"results": result, "suggestions":[], "end_flag": 0})
+            await notify_data_change(
+                {"results": result, "suggestions": [], "end_flag": 0}
+            )
         #### 去重
         final_nodes = remove_duplicates(total_results)
         #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
-        await websocket.send_json({"results": final_nodes, "suggestions": [], "end_flag": 1})
+        await notify_data_change(
+            {"results": final_nodes, "suggestions": [], "end_flag": 1}
+        )
 
     except Exception as e:
-        await websocket.send_json({"code": -1, "error": str(e)})
+        await notify_data_change({"code": -1, "error": str(e)})
     finally:
-        await websocket.close()
+        await notify_data_change({"end_flag": 1})
+        return {"results": final_nodes, "suggestions": []}
+
+
+@app.websocket("/rewrite_retrieval")  # WebSocket 接口
+@measure_time
+async def retrieval(websocket: WebSocket):
+    try:
+        await websocket.accept()
+        active_websockets.append(websocket)
+        try:
+            while True:
+                # 等待客户端发送消息或连接关闭
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            # 当WebSocket连接关闭时，从活跃连接列表中移除
+            if active_websockets:
+                active_websockets.remove(websocket)
+    except Exception as e:
+        print(f"{e}:{traceback.format_exc()}")
 
 
 # 启动应用

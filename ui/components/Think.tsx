@@ -4,10 +4,6 @@ import { cn } from '@/lib/utils';
 
 const url = `/api/rewrite_query`; // Assuming the API endpoint is correctly set
 
-interface DataProps {
-  query: string;
-}
-
 interface ResponseProps {
   query_combine?: string[];
   message: string;
@@ -37,7 +33,8 @@ const Think: React.FC<{
         body: JSON.stringify({ query: initialQuery }),
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`HTTP error! status: ${response.status}`);
       }
       const result: ResponseProps = await response.json();
       if (result.query_combine) {
@@ -51,30 +48,6 @@ const Think: React.FC<{
       localStorage.setItem('query', '');
     }
   }, [initialQuery]); // 依赖项为 initialQuery
-
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8031/...');
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
-
-    ws.onmessage = (event) => {
-      console.log('Message from server:', event.data);
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
 
   useEffect(() => {
     if (!isDataFetched) {
@@ -99,7 +72,7 @@ const Think: React.FC<{
       if (index < queryCombine.length) {
         setQueryCombineStep(`  ${queryCombine[index]}`);
         index++;
-        setTimeout(displayQueryCombineStep, 500); // 设置延迟时间为1000毫秒
+        setTimeout(displayQueryCombineStep, 500);
       } else {
         setQueryCombineStep('');
       }
@@ -115,7 +88,7 @@ const Think: React.FC<{
       {true && (
         <div>
           <br></br>
-          {/* currentStep===0时显示 */}
+          {/* currentStep>-1时显示 */}
           {currentStep > -1 && (
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <Disc3

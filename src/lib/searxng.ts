@@ -1,4 +1,5 @@
 import axios from 'axios';
+import logger from '../utils/logger';
 import { getSelfSearchUrl, getPyPort } from '../config';
 
 interface SearxngSearchOptions {
@@ -37,7 +38,7 @@ export const searchSearxng = async (
   const pyport = getPyPort();
   const url = urlroot + ':' + pyport + '/retrieval';
 
-  console.log('python 服务检索的url：', url);
+  logger.info(`python 服务检索的url：${url}`);
   const payload = {
     query_list: query,
   };
@@ -46,9 +47,10 @@ export const searchSearxng = async (
     const response = await axios.post(url, payload);
     const results = response.data.results;
     const suggestions = response.data.suggestions;
+    logger.info(`检索：${suggestions}`);
     return { results, suggestions };
   } catch (error) {
-    console.error('这里出现错误:', error);
+    logger.error('这里出现错误:', error);
     throw error;
   }
 };
