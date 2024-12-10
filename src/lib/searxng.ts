@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSelfSearchUrl,getPyPort } from '../config';
+import { getSelfSearchUrl, getPyPort } from '../config';
 
 interface SearxngSearchOptions {
   categories?: string[];
@@ -19,25 +19,27 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
-
 export const searchSearxng = async (
   query: string | string[],
   opts?: SearxngSearchOptions,
 ) => {
-  if (typeof query === "string") { // 如果 query 是字符串类型，将其转换为单元素数组
-    query = [query];
-  } else if (!Array.isArray(query)) { // 如果 query 既不是字符串也不是字符串数组，抛出一个错误。
-    throw new Error("query必须是 【字符串 】或者 【字符串数组】！！！！！");
+  if (typeof query === 'string') {
+    // 如果 query 是字符串类型，将其转换为单元素数组
+    if (query.startsWith('[') && query.endsWith(']')) query = JSON.parse(query);
+    else query = [query];
+  } else if (!Array.isArray(query)) {
+    // 如果 query 既不是字符串也不是字符串数组，抛出一个错误。
+    throw new Error('query必须是 【字符串 】或者 【字符串数组】！！！！！');
   }
 
   // const url = "http://localhost:8013/retrieval";
   const urlroot = getSelfSearchUrl();
   const pyport = getPyPort();
-  const url = urlroot + ':' + pyport + "/retrieval";
+  const url = urlroot + ':' + pyport + '/retrieval';
 
   console.log('python 服务检索的url：', url);
   const payload = {
-    query_list:query
+    query_list: query,
   };
 
   try {
@@ -71,7 +73,6 @@ export const searchSearxng = async (
 //       console.error('搜索出错:', error);
 //   }
 // }
-
 
 // // 执行搜索
 // performSearch();

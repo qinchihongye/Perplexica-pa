@@ -14,7 +14,7 @@ interface ResponseProps {
   code?: number;
 }
 
-const ThinkComponent: React.FC<{
+const Think: React.FC<{
   initialQuery: string;
 }> = ({ initialQuery }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -51,6 +51,30 @@ const ThinkComponent: React.FC<{
       localStorage.setItem('query', '');
     }
   }, [initialQuery]); // 依赖项为 initialQuery
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8031/...');
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket closed');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isDataFetched) {
@@ -135,4 +159,4 @@ const ThinkComponent: React.FC<{
   );
 };
 
-export default ThinkComponent;
+export default Think;

@@ -358,7 +358,11 @@ const ChatWindow = ({ id }: { id?: string }) => {
     }
   }, [isMessagesLoaded, isWSReady]);
 
-  const sendMessage = async (message: string, messageId?: string) => {
+  const sendMessage = async (
+    message: string,
+    messageId?: string,
+    queryList?: Array<String>,
+  ) => {
     if (loading) return;
 
     setLoading(true);
@@ -382,6 +386,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
         focusMode: focusMode,
         optimizationMode: optimizationMode,
         history: [...chatHistory, ['human', message]],
+        queryList: queryList,
       }),
     );
 
