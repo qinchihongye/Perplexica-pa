@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@iarna/toml": "^2.2.5",
     "@icons-pack/react-simple-icons": "^9.4.0",
     "@langchain/openai": "^0.0.25",

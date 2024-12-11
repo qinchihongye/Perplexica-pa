@@ -27,6 +27,49 @@ export interface File {
   fileId: string;
 }
 
+const clientId = new Date().toISOString();
+
+const useWebSocket = (url: string) => {
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('clientId') === clientId) {
+      return;
+    }
+    if (!ws) {
+      localStorage.setItem('clientId', clientId);
+
+      const wsInstance = new WebSocket(url);
+
+      wsInstance.onopen = () => {
+        setIsReady(true);
+        console.log('[DEBUG] WebSocket opened');
+      };
+
+      wsInstance.onerror = () => {
+        console.error('WebSocket connection error.');
+      };
+
+      wsInstance.onclose = () => {
+        setIsReady(false);
+        console.log('[DEBUG] WebSocket closed');
+      };
+
+      setWs(wsInstance);
+    }
+
+    return () => {
+      if (ws) {
+        ws.close();
+        console.log('[DEBUG] WebSocket manually closed');
+      }
+    };
+  }, [url, ws]);
+
+  return { ws, isReady };
+};
+
 const useSocket = (
   url: string,
   setIsWSReady: (ready: boolean) => void,
@@ -277,7 +320,13 @@ const loadMessages = async (
   setIsMessagesLoaded(true);
 };
 
-const ChatWindow = ({ id }: { id?: string }) => {
+const ChatWindow = ({
+  id,
+  wsMessages,
+}: {
+  id?: string;
+  wsMessages?: Object[];
+}) => {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get('q');
 
@@ -288,11 +337,43 @@ const ChatWindow = ({ id }: { id?: string }) => {
   const [isReady, setIsReady] = useState(false);
 
   const [isWSReady, setIsWSReady] = useState(false);
+  const [step, setStep] = useState<Object>({});
+
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
     setIsWSReady,
     setHasError,
   );
+
+  const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
+    `ws://${process.env.NEXT_PUBLIC_PY_API?.replace('http://', '')}:${process.env.NEXT_PUBLIC_PY_PORT}/rewrite_retrieval`,
+  );
+
+  useEffect(() => {
+    if (isReady && ws) {
+      ws.send('Hello, WebSocket!');
+    }
+  }, [isReady, ws]);
+
+  useEffect(() => {
+    let timeoutId: any = null;
+    const stepMessageHandler = async (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      // 清除上一次的定时器
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      // 设置新的定时器
+      timeoutId = setTimeout(() => {
+        setStep(data);
+      }, 600);
+    };
+
+    if (stepIsReady && stepWs) {
+      stepWs?.addEventListener('message', stepMessageHandler);
+    }
+  }, [stepWs, stepIsReady]);
 
   const [loading, setLoading] = useState(false);
   const [messageAppeared, setMessageAppeared] = useState(false);
@@ -545,6 +626,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
               setFileIds={setFileIds}
               files={files}
               setFiles={setFiles}
+              step={step}
             />
           </>
         ) : (

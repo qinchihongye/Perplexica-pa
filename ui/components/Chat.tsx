@@ -5,7 +5,6 @@ import MessageInput from './MessageInput';
 import { File, Message } from './ChatWindow';
 import MessageBox from './MessageBox';
 import MessageBoxLoading from './MessageBoxLoading';
-import Think from './Think';
 
 const Chat = ({
   loading,
@@ -17,6 +16,7 @@ const Chat = ({
   setFileIds,
   files,
   setFiles,
+  step,
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
@@ -27,6 +27,7 @@ const Chat = ({
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
+  step: Object;
 }) => {
   const [dividerWidth, setDividerWidth] = useState(0);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -63,13 +64,6 @@ const Chat = ({
 
         return (
           <Fragment key={msg.messageId}>
-            {/* {isLast && loading ? (
-              <Think
-                initialQuery={messages[messages.length - 1].content}
-              ></Think>
-            ) : (
-              ''
-            )} */}
             <MessageBox
               key={i}
               message={msg}
@@ -80,6 +74,7 @@ const Chat = ({
               isLast={isLast}
               rewrite={rewrite}
               sendMessage={sendMessage}
+              step={step}
             />
             {!isLast && msg.role === 'assistant' && (
               <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />

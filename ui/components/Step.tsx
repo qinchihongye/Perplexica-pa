@@ -1,85 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { Disclosure, Button, TabPanel } from '@headlessui/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from '@headlessui/react';
+import { ChevronDownIcon, LinkIcon } from '@heroicons/react/20/solid';
+import { Disc3 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Step {
-  title: string;
-  details: string;
-}
-
-interface Message {
-  message: string;
+  message?: string;
+  results?: Object[];
   query_combine?: string[];
-  results?: string[];
-  suggestions?: string[];
-  end_flag: string;
+  suggestions?: Object[];
+  end_flag: number;
+  chat_id: string;
 }
 
-const Step: React.FC<{ isLast: boolean; loading: boolean; query: string }> = ({
-  isLast,
-  loading,
-  query,
-}) => {
-  const [message, setMessage] = useState<Message[]>([]);
+interface StepProps {
+  isLast: boolean;
+  loading: boolean;
+  query: string;
+  step?: Object;
+}
+
+const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
+  const [steps, setSteps] = useState<Object>({});
+  const [stepLoading, setStepLoading] = useState<boolean>(true);
+
+  const stepDataHandler = useCallback(
+    (step: Step) => {
+      if (step.end_flag === 1) {
+        setStepLoading(false);
+      } else {
+        setStepLoading(true);
+      }
+      if (step.message) {
+        const newSteps = { ...steps };
+        if (newSteps[step.message]) {
+          newSteps[step.message] = newSteps[step.message].concat(step.results);
+        } else {
+          newSteps[step.message] = [];
+        }
+        setSteps(newSteps);
+        console.log(newSteps);
+      }
+    },
+    [step],
+  );
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://api/rewrite_retrieval`);
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
-
-    ws.onmessage = (event) => {
-      console.log('Message from server:', event.data);
-      // 假设从服务器接收到的数据是 Message 类型的数组
-      setMessage(JSON.parse(event.data));
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket closed');
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
+    if (step) {
+      stepDataHandler(step as Step);
+    }
+  }, [step]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {message.map((step, index) => (
-        <Disclosure key={index}>
-          {({ open }) => (
-            <>
-              <Disclosure.Button
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  background: 'none',
-                  cursor: 'pointer',
-                  padding: '10px',
-                  marginBottom: '10px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                }}
-              >
-                {step.message}
-                <span>{open ? ' ▼' : ' ▶'}</span>
-              </Disclosure.Button>
-              <Disclosure.Panel
-                style={{
-                  marginTop: '10px',
-                  padding: '10px',
-                  backgroundColor: '#f9f9f9',
-                  borderRadius: '4px',
-                }}
-              >
-                <pre>{step.results?.join('\n') || ''}</pre>
-              </Disclosure.Panel>
-            </>
-          )}
+    <div className="mx-auto w-full divide-y divide-white/5 rounded-xl bg-white/5">
+      {Object.keys(steps).map((key, index) => (
+        <Disclosure key={index} as="div" className="p-6" defaultOpen={true}>
+          <DisclosureButton className="group flex w-full items-center justify-between">
+            <div className="flex items-center">
+              <Disc3
+                className={cn(
+                  'text-black dark:text-white mr-2',
+                  stepLoading ? 'animate-spin' : 'animate-none',
+                )}
+                size={15}
+              />
+              <span className="text-sm/6 font-medium text-white group-data-[hover]:text-white/80">
+                {key}
+              </span>
+            </div>
+            <ChevronDownIcon className="size-5 fill-white/60 group-data-[hover]:fill-white/50 group-data-[open]:rotate-180" />
+          </DisclosureButton>
+          <DisclosurePanel className="mt-2 text-sm/5 text-white/50">
+            <ul>
+              {steps[key].map((result, resultIndex) => (
+                <li key={resultIndex} className="flex items-center">
+                  <LinkIcon className="w-4 h-4 mr-2" aria-hidden="true" />
+                  <a
+                    href={result.url}
+                    className="text-sm font-medium text-white hover:text-white/80"
+                  >
+                    {result.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </DisclosurePanel>
         </Disclosure>
       ))}
     </div>
