@@ -21,50 +21,33 @@ interface StepProps {
   isLast: boolean;
   loading: boolean;
   query: string;
-  step?: Object;
+  steps?: DataObject<string, Object[]>;
+  stepLoading: boolean;
 }
 
 type DataObject<K extends string | number | symbol, V> = {
   [key in K]: V;
 };
 
-const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
-  const [steps, setSteps] = useState<DataObject<string, Object[]>>({});
-  const [stepLoading, setStepLoading] = useState<boolean>(true);
-
-  const stepDataHandler = useCallback(
-    (step: Step) => {
-      if (step.end_flag === 1) {
-        setStepLoading(false);
-      } else {
-        setStepLoading(true);
-      }
-      if (step.message) {
-        const newSteps = { ...steps };
-        if (newSteps[step.message]) {
-          newSteps[step.message] = newSteps[step.message].concat(
-            step.results ?? [],
-          );
-        } else {
-          newSteps[step.message] = [];
-        }
-        setSteps(newSteps);
-        console.log(newSteps);
-      }
-    },
-    [step],
-  );
+const Step: React.FC<StepProps> = ({ steps, stepLoading }) => {
+  const [_steps, setSteps] = useState<DataObject<string, Object[]>>({});
 
   useEffect(() => {
-    if (step) {
-      stepDataHandler(step as Step);
+    if (steps) {
+      console.log(steps);
+      setSteps(steps);
     }
-  }, [step]);
+  }, [steps]);
 
   return (
     <div className="mx-auto w-full divide-y divide-white/5 rounded-xl bg-white/5">
-      {Object.keys(steps).map((key, index) => (
-        <Disclosure key={index} as="div" className="p-6" defaultOpen={true}>
+      {Object.keys(_steps).map((key, index) => (
+        <Disclosure
+          key={index}
+          as="div"
+          className="p-6"
+          defaultOpen={key === '去重' ? false : true}
+        >
           <DisclosureButton className="group flex w-full items-center justify-between">
             <div className="flex items-center">
               <Disc3
@@ -82,14 +65,14 @@ const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-white/50">
             <ul>
-              {steps[key].map((result: any, resultIndex: number) => (
+              {_steps[key].map((result: any, resultIndex: number) => (
                 <li key={resultIndex} className="flex items-center">
                   <LinkIcon className="w-4 h-4 mr-2" aria-hidden="true" />
                   <a
                     href={result.url}
                     className="text-sm font-medium text-white hover:text-white/80"
                   >
-                    {result.title}
+                    {result.title || result}
                   </a>
                 </li>
               ))}

@@ -337,7 +337,12 @@ const ChatWindow = ({
   const [isReady, setIsReady] = useState(false);
 
   const [isWSReady, setIsWSReady] = useState(false);
-  const [step, setStep] = useState<Object>({});
+  const [stepLoading, setStepLoading] = useState(true);
+
+  type DataObject<K extends string | number | symbol, V> = {
+    [key in K]: V;
+  };
+  const [steps, setSteps] = useState<DataObject<string, Object[]>>({});
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -346,7 +351,7 @@ const ChatWindow = ({
   );
 
   const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
-    `ws://${process.env.NEXT_PUBLIC_PY_API?.replace('http://', '')}:${process.env.NEXT_PUBLIC_PY_PORT}/rewrite_retrieval`,
+    `${process.env.NEXT_PUBLIC_PYWS_API}:${process.env.NEXT_PUBLIC_PY_PORT}/rewrite_retrieval`,
   );
 
   useEffect(() => {
@@ -356,24 +361,37 @@ const ChatWindow = ({
   }, [isReady, ws]);
 
   useEffect(() => {
-    let timeoutId: any = null;
-    const stepMessageHandler = async (e: MessageEvent) => {
-      const data = JSON.parse(e.data);
-      // 清除上一次的定时器
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+    const stepMessageHandler = (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data);
+        // console.log(data);
+        if (data.end_flag === 1) {
+          setStepLoading(false);
+        } else {
+          setStepLoading(true);
+        }
+        if (data.message) {
+          setSteps((prevSteps) => ({
+            ...prevSteps,
+            [data.message]: [
+              ...(prevSteps[data.message] || []),
+              ...(data.results ?? []),
+            ],
+          }));
+        }
+      } catch (e) {
+        console.error(e);
       }
-
-      // 设置新的定时器
-      timeoutId = setTimeout(() => {
-        setStep(data);
-      }, 600);
     };
 
     if (stepIsReady && stepWs) {
       stepWs?.addEventListener('message', stepMessageHandler);
     }
-  }, [stepWs, stepIsReady]);
+  }, [stepIsReady]);
+
+  useEffect(() => {
+    console.log('steps', steps);
+  }, [steps]);
 
   const [loading, setLoading] = useState(false);
   const [messageAppeared, setMessageAppeared] = useState(false);
@@ -388,7 +406,6 @@ const ChatWindow = ({
   const [optimizationMode, setOptimizationMode] = useState('speed');
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
-
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -626,7 +643,8 @@ const ChatWindow = ({
               setFileIds={setFileIds}
               files={files}
               setFiles={setFiles}
-              step={step}
+              steps={steps}
+              stepLoading={stepLoading}
             />
           </>
         ) : (

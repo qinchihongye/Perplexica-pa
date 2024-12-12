@@ -5,6 +5,11 @@ import MessageInput from './MessageInput';
 import { File, Message } from './ChatWindow';
 import MessageBox from './MessageBox';
 import MessageBoxLoading from './MessageBoxLoading';
+import Step from './Step';
+
+type DataObject<K extends string | number | symbol, V> = {
+  [key in K]: V;
+};
 
 const Chat = ({
   loading,
@@ -16,7 +21,8 @@ const Chat = ({
   setFileIds,
   files,
   setFiles,
-  step,
+  steps,
+  stepLoading,
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
@@ -27,7 +33,8 @@ const Chat = ({
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
-  step: Object;
+  steps: DataObject<string, Object[]>;
+  stepLoading: boolean;
 }) => {
   const [dividerWidth, setDividerWidth] = useState(0);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -74,7 +81,8 @@ const Chat = ({
               isLast={isLast}
               rewrite={rewrite}
               sendMessage={sendMessage}
-              step={step}
+              steps={steps}
+              stepLoading={stepLoading}
             />
             {!isLast && msg.role === 'assistant' && (
               <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />

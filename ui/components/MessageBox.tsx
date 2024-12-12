@@ -22,6 +22,10 @@ import SearchVideos from './SearchVideos';
 import Step from './Step';
 import { useSpeech } from 'react-text-to-speech';
 
+type DataObject<K extends string | number | symbol, V> = {
+  [key in K]: V;
+};
+
 const MessageBox = ({
   message,
   messageIndex,
@@ -31,7 +35,8 @@ const MessageBox = ({
   isLast,
   rewrite,
   sendMessage,
-  step,
+  steps,
+  stepLoading,
 }: {
   message: Message;
   messageIndex: number;
@@ -41,7 +46,8 @@ const MessageBox = ({
   isLast: boolean;
   rewrite: (messageId: string) => void;
   sendMessage: (message: string) => void;
-  step: Object;
+  steps: DataObject<string, Object[]>;
+  stepLoading: boolean;
 }) => {
   const [parsedMessage, setParsedMessage] = useState(message.content);
   const [speechMessage, setSpeechMessage] = useState(message.content);
@@ -85,7 +91,15 @@ const MessageBox = ({
           )}
         </div>
       )}
-
+      {/* {isLast && (
+        <Step
+          isLast={isLast}
+          loading={loading}
+          query={message.content}
+          steps={steps}
+          stepLoadin={stepLoading}
+        ></Step>
+      )} */}
       {message.role === 'assistant' && (
         <div className="flex flex-col space-y-9 lg:space-y-0 lg:flex-row lg:justify-between lg:space-x-9">
           <div
@@ -98,7 +112,8 @@ const MessageBox = ({
                   isLast={isLast}
                   loading={loading}
                   query={message.content}
-                  step={step}
+                  steps={steps}
+                  stepLoading={stepLoading}
                 ></Step>
                 <div className="flex flex-row items-center space-x-2">
                   <BookCopy className="text-black dark:text-white" size={20} />
