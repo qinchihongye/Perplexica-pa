@@ -1,5 +1,6 @@
 import traceback
 import json
+import uuid
 
 import toml
 from fastapi import FastAPI, WebSocket
@@ -37,6 +38,24 @@ class QueryRequest(BaseModel):
 
 # 创建两个 FastAPI 实例
 app = FastAPI()
+
+
+@app.websocket("/rewrite_retrieval")  # WebSocket 接口
+@measure_time
+async def retrieval_ws(websocket: WebSocket):
+    try:
+        await websocket.accept()
+        active_websockets.append(websocket)
+        try:
+            while True:
+                # 等待客户端发送消息或连接关闭
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            # 当WebSocket连接关闭时，从活跃连接列表中移除
+            if active_websockets:
+                active_websockets.remove(websocket)
+    except Exception as e:
+        print(f"{e}:{traceback.format_exc()}")
 
 
 @app.get("/health")
@@ -126,6 +145,7 @@ async def notify_data_change(new_data: dict):
 @measure_time
 async def retrieval(query_list: QueryRequest):
     try:
+        chat_id = str(uuid.uuid4())
         logger.info(f"body of query: {query_list}")
         query = query_list.query_list[0]
 
@@ -134,7 +154,12 @@ async def retrieval(query_list: QueryRequest):
         query_list = await post_completions(rewrite_query_prompt_new)
         query_combine = [query_str for query_str in eval(query_list)]
         await notify_data_change(
-            {"message": "success", "query_combine": query_combine, "end_flag": 0}
+            {
+                "message": "改写",
+                "results": query_combine,
+                "end_flag": 0,
+                "chat_id": chat_id,
+            }
         )
 
         """异步检索"""
@@ -152,38 +177,32 @@ async def retrieval(query_list: QueryRequest):
             result = await task
             total_results += result
             await notify_data_change(
-                {"results": result, "suggestions": [], "end_flag": 0}
+                {
+                    "message": "检索",
+                    "results": result,
+                    "suggestions": [],
+                    "end_flag": 0,
+                    "chat_id": chat_id,
+                }
             )
         #### 去重
         final_nodes = remove_duplicates(total_results)
         #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
         await notify_data_change(
-            {"results": final_nodes, "suggestions": [], "end_flag": 1}
+            {
+                "message": "去重",
+                "results": final_nodes,
+                "suggestions": [],
+                "end_flag": 1,
+                "chat_id": chat_id,
+            }
         )
 
     except Exception as e:
         await notify_data_change({"code": -1, "error": str(e)})
     finally:
-        await notify_data_change({"end_flag": 1})
+        await notify_data_change({"end_flag": 1, "chat_id": chat_id})
         return {"results": final_nodes, "suggestions": []}
-
-
-@app.websocket("/rewrite_retrieval")  # WebSocket 接口
-@measure_time
-async def retrieval(websocket: WebSocket):
-    try:
-        await websocket.accept()
-        active_websockets.append(websocket)
-        try:
-            while True:
-                # 等待客户端发送消息或连接关闭
-                await websocket.receive_text()
-        except WebSocketDisconnect:
-            # 当WebSocket连接关闭时，从活跃连接列表中移除
-            if active_websockets:
-                active_websockets.remove(websocket)
-    except Exception as e:
-        print(f"{e}:{traceback.format_exc()}")
 
 
 # 启动应用

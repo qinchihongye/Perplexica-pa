@@ -24,8 +24,12 @@ interface StepProps {
   step?: Object;
 }
 
+type DataObject<K extends string | number | symbol, V> = {
+  [key in K]: V;
+};
+
 const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
-  const [steps, setSteps] = useState<Object>({});
+  const [steps, setSteps] = useState<DataObject<string, Object[]>>({});
   const [stepLoading, setStepLoading] = useState<boolean>(true);
 
   const stepDataHandler = useCallback(
@@ -38,7 +42,9 @@ const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
       if (step.message) {
         const newSteps = { ...steps };
         if (newSteps[step.message]) {
-          newSteps[step.message] = newSteps[step.message].concat(step.results);
+          newSteps[step.message] = newSteps[step.message].concat(
+            step.results ?? [],
+          );
         } else {
           newSteps[step.message] = [];
         }
@@ -76,7 +82,7 @@ const Step: React.FC<StepProps> = ({ isLast, loading, query, step }) => {
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-white/50">
             <ul>
-              {steps[key].map((result, resultIndex) => (
+              {steps[key].map((result: any, resultIndex: number) => (
                 <li key={resultIndex} className="flex items-center">
                   <LinkIcon className="w-4 h-4 mr-2" aria-hidden="true" />
                   <a
