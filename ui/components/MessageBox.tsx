@@ -91,15 +91,18 @@ const MessageBox = ({
           )}
         </div>
       )}
-      {/* {isLast && (
+
+      {isLast && message.role === 'assistant' && (
         <Step
           isLast={isLast}
           loading={loading}
           query={message.content}
           steps={steps}
-          stepLoadin={stepLoading}
+          stepLoading={stepLoading}
+          messageId={message.messageId}
         ></Step>
-      )} */}
+      )}
+
       {message.role === 'assistant' && (
         <div className="flex flex-col space-y-9 lg:space-y-0 lg:flex-row lg:justify-between lg:space-x-9">
           <div
@@ -108,13 +111,13 @@ const MessageBox = ({
           >
             {message.sources && message.sources.length > 0 && (
               <div className="flex flex-col space-y-2">
-                <Step
+                {/* <Step
                   isLast={isLast}
                   loading={loading}
                   query={message.content}
                   steps={steps}
                   stepLoading={stepLoading}
-                ></Step>
+                ></Step> */}
                 <div className="flex flex-row items-center space-x-2">
                   <BookCopy className="text-black dark:text-white" size={20} />
                   <h3 className="text-black dark:text-white font-medium text-xl">

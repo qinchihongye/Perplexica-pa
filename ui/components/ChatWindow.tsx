@@ -364,12 +364,7 @@ const ChatWindow = ({
     const stepMessageHandler = (e: MessageEvent) => {
       try {
         const data = JSON.parse(e.data);
-        // console.log(data);
-        if (data.end_flag === 1) {
-          setStepLoading(false);
-        } else {
-          setStepLoading(true);
-        }
+        setStepLoading(data.end_flag === 0);
         if (data.message) {
           setSteps((prevSteps) => ({
             ...prevSteps,

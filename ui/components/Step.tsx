@@ -23,21 +23,25 @@ interface StepProps {
   query: string;
   steps?: DataObject<string, Object[]>;
   stepLoading: boolean;
+  messageId: string;
 }
 
 type DataObject<K extends string | number | symbol, V> = {
   [key in K]: V;
 };
 
-const Step: React.FC<StepProps> = ({ steps, stepLoading }) => {
+const Step: React.FC<StepProps> = ({ steps, stepLoading, messageId }) => {
   const [_steps, setSteps] = useState<DataObject<string, Object[]>>({});
-
   useEffect(() => {
     if (steps) {
-      console.log(steps);
+      // console.log(steps);
       setSteps(steps);
     }
-  }, [steps]);
+  }, [steps, messageId]);
+
+  // useEffect(() => {
+  //   if (stepLoading === false) localStorage.setItem('messageId', messageId);
+  // }, [stepLoading]);
 
   return (
     <div className="mx-auto w-full divide-y divide-white/5 rounded-xl bg-white/5">
