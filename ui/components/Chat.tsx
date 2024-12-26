@@ -33,7 +33,7 @@ const Chat = ({
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
-  steps: DataObject<string, Object[]>;
+  steps: Object[];
   stepLoading: boolean;
 }) => {
   const [dividerWidth, setDividerWidth] = useState(0);

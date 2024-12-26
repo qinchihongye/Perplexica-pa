@@ -21,6 +21,7 @@ import SearchImages from './SearchImages';
 import SearchVideos from './SearchVideos';
 import Step from './Step';
 import { useSpeech } from 'react-text-to-speech';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 type DataObject<K extends string | number | symbol, V> = {
   [key in K]: V;
@@ -46,7 +47,7 @@ const MessageBox = ({
   isLast: boolean;
   rewrite: (messageId: string) => void;
   sendMessage: (message: string) => void;
-  steps: DataObject<string, Object[]>;
+  steps: Object[];
   stepLoading: boolean;
 }) => {
   const [parsedMessage, setParsedMessage] = useState(message.content);
@@ -93,14 +94,25 @@ const MessageBox = ({
       )}
 
       {isLast && message.role === 'assistant' && (
-        <Step
-          isLast={isLast}
-          loading={loading}
-          query={message.content}
-          steps={steps}
-          stepLoading={stepLoading}
-          messageId={message.messageId}
-        ></Step>
+        <div>
+          <div className="flex items-center mb-3">
+            <MagnifyingGlassIcon
+              className="w-8 h-8 mr-1 text-black/60 dark:text-white/80"
+              aria-hidden="true"
+            />
+            <h4 className="text-black dark:text-white font-medium text-xl lg:w-9/12 ml-1">
+              Search
+            </h4>
+          </div>
+          <Step
+            isLast={isLast}
+            loading={loading}
+            query={message.content}
+            steps={steps}
+            stepLoading={stepLoading}
+            messageId={message.messageId}
+          ></Step>
+        </div>
       )}
 
       {message.role === 'assistant' && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Document } from '@langchain/core/documents';
 import Navbar from './Navbar';
 import Chat from './Chat';
@@ -29,42 +29,69 @@ export interface File {
 
 const clientId = new Date().toISOString();
 
+const debounce = (func: any, wait: string | number | any | undefined) => {
+  let timeout: string | number | any | undefined;
+  return function executedFunction(...args: any) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+const delayExecute = (func: any, wait: string | number | any | undefined) => {
+  let timeout: string | number | any | undefined;
+  return function executedFunction(...args: any) {
+    const later = () => {
+      func(...args);
+    };
+    // 清除之前的定时器
+    clearTimeout(timeout);
+    // 设置新的定时器
+    timeout = setTimeout(later, wait);
+  };
+};
+
 const useWebSocket = (url: string) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('clientId') === clientId) {
-      return;
-    }
-    if (!ws) {
-      localStorage.setItem('clientId', clientId);
-
-      const wsInstance = new WebSocket(url);
-
-      wsInstance.onopen = () => {
-        setIsReady(true);
-        console.log('[DEBUG] WebSocket opened');
-      };
-
-      wsInstance.onerror = () => {
-        console.error('WebSocket connection error.');
-      };
-
-      wsInstance.onclose = () => {
-        setIsReady(false);
-        console.log('[DEBUG] WebSocket closed');
-      };
-
-      setWs(wsInstance);
-    }
-
-    return () => {
-      if (ws) {
-        ws.close();
-        console.log('[DEBUG] WebSocket manually closed');
+    setTimeout(() => {
+      if (localStorage.getItem('clientId') === clientId) {
+        return;
       }
-    };
+      if (!ws) {
+        localStorage.setItem('clientId', clientId);
+
+        const wsInstance = new WebSocket(url);
+
+        wsInstance.onopen = () => {
+          setIsReady(true);
+          console.log('[DEBUG] WebSocket opened');
+        };
+
+        wsInstance.onerror = () => {
+          console.error('WebSocket connection error.');
+        };
+
+        wsInstance.onclose = () => {
+          setIsReady(false);
+          console.log('[DEBUG] WebSocket closed');
+        };
+
+        setWs(wsInstance);
+      }
+
+      return () => {
+        if (ws) {
+          ws.close();
+          console.log('[DEBUG] WebSocket manually closed');
+        }
+      };
+    }, 500);
   }, [url, ws]);
 
   return { ws, isReady };
@@ -342,7 +369,7 @@ const ChatWindow = ({
   type DataObject<K extends string | number | symbol, V> = {
     [key in K]: V;
   };
-  const [steps, setSteps] = useState<DataObject<string, Object[]>>({});
+  const [steps, setSteps] = useState<Object[]>([]);
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -360,19 +387,59 @@ const ChatWindow = ({
     }
   }, [isReady, ws]);
 
+  interface Item {
+    message?: string;
+    results?: Object[];
+    query_combine?: string[];
+    suggestions?: Object[];
+    end_flag: number;
+    chat_id: string;
+    query?: string;
+  }
+
+  const updateSteps = useCallback(
+    delayExecute((data: any) => {
+      // console.log('Received data:', data);
+      let item: Item = JSON.parse(data);
+      console.log(typeof item);
+      if (item.results && Array.isArray(item.results)) {
+        console.log('Item pass:', item);
+        const filteredResults = item.results.filter(
+          (result) => result !== undefined && item.message === '检索',
+        );
+        // 使用 Set 来去重
+        const uniqueResults = new Set([...filteredResults, ...steps]);
+
+        // 将 Set 转换回数组并更新状态
+        // setSteps(Array.from(uniqueResults));
+        requestAnimationFrame(() => {
+          // 这里的代码会在浏览器下一次重绘之前执行
+          setSteps(Array.from(uniqueResults));
+        });
+      }
+    }, 50),
+    [],
+  );
   useEffect(() => {
     const stepMessageHandler = (e: MessageEvent) => {
       try {
-        const data = JSON.parse(e.data);
-        setStepLoading(data.end_flag === 0);
-        if (data.message) {
-          setSteps((prevSteps) => ({
-            ...prevSteps,
-            [data.message]: [
-              ...(prevSteps[data.message] || []),
-              ...(data.results ?? []),
-            ],
-          }));
+        // let data = JSON.parse(e.data);
+        let item: Item = JSON.parse(e.data);
+        console.log(typeof item);
+        if (item.results && Array.isArray(item.results)) {
+          console.log('Item pass:', item);
+          const filteredResults = item.results.filter(
+            (result) => result !== undefined && item.message === '检索',
+          );
+          // 使用 Set 来去重
+          const uniqueResults = new Set([...filteredResults, ...steps]);
+
+          // 将 Set 转换回数组并更新状态
+          // setSteps(Array.from(uniqueResults));
+          requestAnimationFrame(() => {
+            // 这里的代码会在浏览器下一次重绘之前执行
+            setSteps(Array.from(uniqueResults));
+          });
         }
       } catch (e) {
         console.error(e);
@@ -382,10 +449,10 @@ const ChatWindow = ({
     if (stepIsReady && stepWs) {
       stepWs?.addEventListener('message', stepMessageHandler);
     }
-  }, [stepIsReady]);
+  }, [stepIsReady, steps]);
 
   useEffect(() => {
-    console.log('steps', steps);
+    console.log('steps:', steps);
   }, [steps]);
 
   const [loading, setLoading] = useState(false);
