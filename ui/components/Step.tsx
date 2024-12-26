@@ -142,6 +142,7 @@ const Step: React.FC<StepProps> = ({ steps, stepLoading, messageId }) => {
                           <a
                             href={result.url}
                             className="text-sm font-medium text-black dark:text-white hover:text-black/60 dark:hover:text-white/80"
+                            target="_blank"
                           >
                             {result.title.length < 10
                               ? result.title

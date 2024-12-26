@@ -370,6 +370,7 @@ const ChatWindow = ({
     [key in K]: V;
   };
   const [steps, setSteps] = useState<Object[]>([]);
+  const [wsConected, setConected] = useState<boolean>(false);
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -420,7 +421,9 @@ const ChatWindow = ({
     }, 50),
     [],
   );
+
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
     const stepMessageHandler = (e: MessageEvent) => {
       try {
         // let data = JSON.parse(e.data);
@@ -431,14 +434,17 @@ const ChatWindow = ({
           const filteredResults = item.results.filter(
             (result) => result !== undefined && item.message === '检索',
           );
-          // 使用 Set 来去重
           const uniqueResults = new Set([...filteredResults, ...steps]);
-
-          // 将 Set 转换回数组并更新状态
           // setSteps(Array.from(uniqueResults));
           requestAnimationFrame(() => {
-            // 这里的代码会在浏览器下一次重绘之前执行
-            setSteps(Array.from(uniqueResults));
+            if (timeoutId !== null) {
+              clearTimeout(timeoutId);
+              timeoutId = setTimeout(() => {
+                setSteps(Array.from(uniqueResults));
+              }, 1000);
+            } else {
+              setSteps(Array.from(uniqueResults));
+            }
           });
         }
       } catch (e) {
@@ -448,8 +454,18 @@ const ChatWindow = ({
 
     if (stepIsReady && stepWs) {
       stepWs?.addEventListener('message', stepMessageHandler);
+      setConected(true);
     }
-  }, [stepIsReady, steps]);
+
+    return () => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      if (stepWs) {
+        stepWs.removeEventListener('message', stepMessageHandler);
+      }
+    };
+  }, [stepIsReady, steps, stepWs]);
 
   useEffect(() => {
     console.log('steps:', steps);
