@@ -8,15 +8,17 @@ from starlette.websockets import WebSocketDisconnect
 from multiprocessing import Process
 from typing import List
 from pydantic import BaseModel
+from loguru import logger
+import asyncio
+import uvicorn
 
 from util.base_util import remove_duplicates
 from util.prompts import rewrite_query_prompt
 from route.oneapi_llm import post_completions
 from route.retrieve_base import Zhihuretrieve
-import uvicorn
 from util.decorator_util import measure_time
-from loguru import logger
-import asyncio
+from fileds.ws_message import Message
+
 
 # 读取 config.toml 文件
 with open("config.toml", "r") as file:
@@ -77,51 +79,6 @@ async def rewrite(query: Query):
         return {"code": -1, "error": f"{e}: {traceback.format_exc}"}
 
 
-# query检索召回 节点
-# @app.post("/retrieval")
-# @measure_time
-# async def retrieval(query_list: QueryRequest):
-#     try:
-#         logger.info(f"body of query_list: {query_list.query_list}")
-#         retrieve_class = Zhihuretrieve(retrieval_url)
-#         node_list = []
-#         for sub_query_bundle in query_list.query_list:
-#             nodes = await retrieve_class.retrieve(sub_query_bundle)
-#             node_list.extend(nodes)
-
-#         # node去重操作
-#         final_nodes = remove_duplicates(node_list)
-
-#         return {"results": final_nodes,"suggestions": []}
-#     except Exception as e:
-#         return {"code": -1, "error": e}
-
-
-# @app.post("/retrieval")
-# @measure_time
-# async def retrieval(query_list: QueryRequest):
-#     try:
-#         logger.info(f"body of query_list: {query_list.query_list}")
-#         retrieve_class = Zhihuretrieve(retrieval_url)
-
-#         # 使用 asyncio.gather 并发执行多个异步任务
-#         tasks = [
-#             retrieve_class.retrieve(sub_query, time_out)
-#             for sub_query in query_list.query_list
-#         ]
-#         results = await asyncio.gather(*tasks)
-#         # logger.info(f"results: {results}")
-#         # 将所有结果合并到一个列表中
-#         node_list = [node for sublist in results for node in sublist]
-
-#         # node去重操作
-#         final_nodes = remove_duplicates(node_list)
-
-#         return {"results": final_nodes, "suggestions": []}
-#     except Exception as e:
-#         return {"code": -1, "error": str(e)}
-
-
 active_websockets: list[WebSocket] = []
 
 
@@ -141,6 +98,11 @@ async def notify_data_change(new_data: dict):
         active_websockets.remove(ws)
 
 
+async def data_handler(data: list) -> dict:
+    _data = {}
+    _data[data[0]["query"]] = data
+
+
 @app.post("/retrieval")
 @measure_time
 async def retrieval(query_list: QueryRequest):
@@ -154,12 +116,9 @@ async def retrieval(query_list: QueryRequest):
         query_list = await post_completions(rewrite_query_prompt_new)
         query_combine = [query_str for query_str in eval(query_list)]
         await notify_data_change(
-            {
-                "message": "改写",
-                "results": query_combine,
-                "end_flag": 0,
-                "chat_id": chat_id,
-            }
+            Message(
+                message="改写", results=query_combine, end_flag=0, chat_id=chat_id
+            ).dict()
         )
 
         """异步检索"""
@@ -176,33 +135,38 @@ async def retrieval(query_list: QueryRequest):
         for task in asyncio.as_completed(tasks):
             result = await task
             total_results += result
-            await notify_data_change(
-                {
-                    "message": "检索",
-                    "results": result,
-                    "suggestions": [],
-                    "end_flag": 0,
-                    "chat_id": chat_id,
-                }
-            )
+            if result:
+                await notify_data_change(
+                    Message(
+                        message="检索",
+                        results=result,
+                        end_flag=0,
+                        query=result[0]["query"],
+                        chat_id=chat_id,
+                        suggestions=[],
+                    ).dict()
+                )
         #### 去重
         final_nodes = remove_duplicates(total_results)
         #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
         await notify_data_change(
-            {
-                "message": "去重",
-                "results": final_nodes,
-                "suggestions": [],
-                "end_flag": 1,
-                "chat_id": chat_id,
-            }
+            Message(
+                message="去重",
+                results=final_nodes,
+                end_flag=1,
+                chat_id=chat_id,
+                suggestions=[],
+            ).model_dump_json()
         )
 
+        return {"results": final_nodes, "suggestions": []}
+
     except Exception as e:
-        await notify_data_change({"code": -1, "error": str(e)})
+        msg = {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
+        await notify_data_change(msg)
+        return msg
     finally:
         await notify_data_change({"end_flag": 1, "chat_id": chat_id})
-        return {"results": final_nodes, "suggestions": []}
 
 
 # 启动应用
