@@ -28,7 +28,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
       {sources.slice(0, 3).map((source, i) => (
         <a
           className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
-          key={i}
+          key={i + new Date().getTime()}
           href={source.metadata.url}
           target="_blank"
         >
@@ -44,7 +44,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
               ) : (
                 <img
                   //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                  src='/favicon.ico'
+                  src="/favicon.ico"
                   width={16}
                   height={16}
                   alt="favicon"
@@ -76,7 +76,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
               ) : (
                 <img
                   //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                  src='/favicon.ico'
+                  src="/favicon.ico"
                   width={16}
                   height={16}
                   alt="favicon"
@@ -127,7 +127,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                             ) : (
                               <img
                                 //src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                                src='/favicon.ico'
+                                src="/favicon.ico"
                                 width={16}
                                 height={16}
                                 alt="favicon"
