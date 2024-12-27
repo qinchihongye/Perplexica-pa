@@ -70,11 +70,11 @@ export const loadOpenAIChatModels = async () => {
           baseURL: getOpenaiBaseUrl()
         }),
       },
-      'Qwen/Qwen2-72B-Instruct': {
-        displayName: 'qwen72b-instruct',
+      'qwen2.5-72b-instruct': {
+        displayName: 'qwen2.5-72b-instruct',
         model: new ChatOpenAI({
           openAIApiKey,
-          modelName: 'Qwen/Qwen2-72B-Instruct',
+          modelName: 'qwen2.5-72b-instruct',
           temperature: 0.7,
         },{
           baseURL: getOpenaiBaseUrl()
