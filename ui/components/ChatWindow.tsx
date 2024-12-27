@@ -713,7 +713,6 @@ const ChatWindow = ({
               setFiles={setFiles}
               steps={steps}
               stepLoading={stepLoading}
-              isLastFrame={isLastFrame}
             />
           </>
         ) : (
