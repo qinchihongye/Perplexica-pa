@@ -403,17 +403,17 @@ const ChatWindow = ({
       try {
         // let data = JSON.parse(e.data);
         let item: Item = JSON.parse(e.data);
+
         if (item.end_flag) {
-          console.log('清除数据');
-          timeoutId = setTimeout(() => {
+          setTimeout(() => {
+            console.log('清除数据');
             setSteps([]);
             setStepLoading(false);
-          }, 2000);
+          }, 500);
           return;
+        } else {
+          setStepLoading(true);
         }
-        setStepLoading(true);
-
-        // end_flag = item.end_flag;
 
         if (item.results && Array.isArray(item.results)) {
           console.log('Item pass:', item);
@@ -423,14 +423,15 @@ const ChatWindow = ({
           const uniqueResults = new Set([...filteredResults, ...steps]);
 
           requestAnimationFrame(() => {
-            if (timeoutId !== null) {
-              clearTimeout(timeoutId);
-              timeoutId = setTimeout(() => {
-                setSteps(Array.from(uniqueResults));
-              }, 1500);
-            } else {
-              setSteps(Array.from(uniqueResults));
-            }
+            // if (timeoutId !== null) {
+            //   clearTimeout(timeoutId);
+            //   timeoutId = setTimeout(() => {
+            //     setSteps(Array.from(uniqueResults));
+            //   }, 500);
+            // } else {
+            //   setSteps(Array.from(uniqueResults));
+            // }
+            setSteps(Array.from(uniqueResults));
           });
         }
       } catch (e) {

@@ -136,6 +136,7 @@ async def retrieval(query_list: QueryRequest):
             result = await task
             total_results += result
             if result:
+                await asyncio.sleep(0.5)
                 await notify_data_change(
                     Message(
                         message="检索",
@@ -166,6 +167,7 @@ async def retrieval(query_list: QueryRequest):
         await notify_data_change(msg)
         return msg
     finally:
+        await asyncio.sleep(1.5)
         await notify_data_change({"end_flag": 1, "chat_id": chat_id})
 
 

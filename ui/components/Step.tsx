@@ -60,7 +60,10 @@ const Step: React.FC<StepProps> = ({
 
   useEffect(() => {
     if (ownMessageId === '') {
-      setOwnMessageId(messageId);
+      if (messageId) {
+        console.log(messageId);
+        setOwnMessageId(messageId);
+      }
     }
 
     if (!stepLoading) setStoped(true);
@@ -87,7 +90,7 @@ const Step: React.FC<StepProps> = ({
       setkeys(Array.from(keysSet));
       console.log(keys);
     }
-  }, [_steps, loading]);
+  }, [_steps, loading, messageId, ownMessageId]);
 
   return (
     <div className="divide-y w-full divide-white/5 rounded-xl bg-white/5 mb-5 ml-0">
