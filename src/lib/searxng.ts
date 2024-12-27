@@ -47,8 +47,9 @@ export const searchSearxng = async (
     const response = await axios.post(url, payload);
     const results = response.data.results;
     const suggestions = response.data.suggestions;
+    const queryList = query;
     logger.info(`检索：${suggestions}`);
-    return { results, suggestions };
+    return { results, suggestions, queryList };
   } catch (error) {
     logger.error('这里出现错误:', error);
     throw error;

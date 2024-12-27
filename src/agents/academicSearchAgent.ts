@@ -38,7 +38,7 @@ Rephrased: Third law of thermodynamics
 Conversation:
 {chat_history}
 
-Follow up question: {query}
+Follow up relation question: {query}
 Rephrased question:
 `;
 
@@ -130,7 +130,7 @@ const createBasicAcademicSearchRetrieverChain = (llm: BaseChatModel) => {
           }),
       );
 
-      return { query: input, docs: documents };
+      return { query: res.queryList.toString(), docs: documents };
     }),
   ]);
 };

@@ -3,17 +3,12 @@ import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  Popover,
-  PopoverButton,
-  PopoverPanel,
 } from '@headlessui/react';
 import {
   ChevronDownIcon,
-  LinkIcon,
   GlobeAsiaAustraliaIcon,
   CheckCircleIcon,
 } from '@heroicons/react/20/solid';
-// import { CheckCircle } from '@heroicons/react/20/outline';
 import { Disc3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
@@ -51,31 +46,48 @@ interface StepProps {
   messageId: string;
 }
 
-type DataObject<K extends string | number | symbol, V> = {
-  [key in K]: V;
-};
-
-const Step: React.FC<StepProps> = ({ steps, stepLoading, messageId }) => {
+const Step: React.FC<StepProps> = ({
+  steps,
+  stepLoading,
+  messageId,
+  loading,
+}) => {
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState<{ [key: string]: boolean }>({});
+  const [ownMessageId, setOwnMessageId] = useState<string>('');
+  const [stoped, setStoped] = useState<boolean>(false);
 
   useEffect(() => {
-    if (steps) {
+    if (ownMessageId === '') {
+      setOwnMessageId(messageId);
+    }
+
+    if (!stepLoading) setStoped(true);
+
+    if (
+      !stoped &&
+      messageId &&
+      steps &&
+      loading &&
+      messageId == ownMessageId &&
+      steps.length > 0
+    ) {
       console.log('Steps:', steps);
       setSteps(steps);
     }
-  }, [steps, messageId]);
+  }, [steps, messageId, loading, ownMessageId, stepLoading, stoped]);
 
   useEffect(() => {
-    // console.log(_steps);
-    const keysSet = new Set(keys);
-    _steps.map((it) => {
-      if (it.query) keysSet.add(it.query);
-    });
-    setkeys(Array.from(keysSet));
-    console.log(keys);
-  }, [_steps]);
+    if (loading && messageId == ownMessageId) {
+      const keysSet = new Set(keys);
+      _steps.map((it) => {
+        if (it.query) keysSet.add(it.query);
+      });
+      setkeys(Array.from(keysSet));
+      console.log(keys);
+    }
+  }, [_steps, loading]);
 
   return (
     <div className="divide-y w-full divide-white/5 rounded-xl bg-white/5 mb-5 ml-0">
@@ -121,7 +133,7 @@ const Step: React.FC<StepProps> = ({ steps, stepLoading, messageId }) => {
               </DisclosureButton>
               <DisclosurePanel className="mt-2 text-sm/5 text-white/50">
                 <p className="text-sm/6 font-medium dark:text-white/60 text-black ml-2 p-2">
-                  Reading
+                  {loading ? 'Reading' : 'Documents'}
                 </p>
                 <ul className="flex flex-row flex-wrap ml-5">
                   {_steps
@@ -140,7 +152,13 @@ const Step: React.FC<StepProps> = ({ steps, stepLoading, messageId }) => {
                             aria-hidden="true"
                           />
                           <a
-                            href={result.url}
+                            href={
+                              result.url.split('/display/')[0] +
+                              '/display/' +
+                              encodeURIComponent(
+                                result.url.split('/display/')[1],
+                              )
+                            }
                             className="text-sm font-medium text-black dark:text-white hover:text-black/60 dark:hover:text-white/80"
                             target="_blank"
                           >

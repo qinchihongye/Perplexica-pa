@@ -93,7 +93,7 @@ const MessageBox = ({
         </div>
       )}
 
-      {isLast && message.role === 'assistant' && (
+      {message.role === 'assistant' && (
         <div>
           <div className="flex items-center mb-3">
             <MagnifyingGlassIcon

@@ -366,11 +366,9 @@ const ChatWindow = ({
   const [isWSReady, setIsWSReady] = useState(false);
   const [stepLoading, setStepLoading] = useState(true);
 
-  type DataObject<K extends string | number | symbol, V> = {
-    [key in K]: V;
-  };
   const [steps, setSteps] = useState<Object[]>([]);
   const [wsConected, setConected] = useState<boolean>(false);
+  const [isLastFrame, setIsLastFrame] = useState<boolean>(false);
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -398,50 +396,38 @@ const ChatWindow = ({
     query?: string;
   }
 
-  const updateSteps = useCallback(
-    delayExecute((data: any) => {
-      // console.log('Received data:', data);
-      let item: Item = JSON.parse(data);
-      console.log(typeof item);
-      if (item.results && Array.isArray(item.results)) {
-        console.log('Item pass:', item);
-        const filteredResults = item.results.filter(
-          (result) => result !== undefined && item.message === '检索',
-        );
-        // 使用 Set 来去重
-        const uniqueResults = new Set([...filteredResults, ...steps]);
-
-        // 将 Set 转换回数组并更新状态
-        // setSteps(Array.from(uniqueResults));
-        requestAnimationFrame(() => {
-          // 这里的代码会在浏览器下一次重绘之前执行
-          setSteps(Array.from(uniqueResults));
-        });
-      }
-    }, 50),
-    [],
-  );
-
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
+    // let end_flag = 0;
     const stepMessageHandler = (e: MessageEvent) => {
       try {
         // let data = JSON.parse(e.data);
         let item: Item = JSON.parse(e.data);
-        console.log(typeof item);
+        if (item.end_flag) {
+          console.log('清除数据');
+          timeoutId = setTimeout(() => {
+            setSteps([]);
+            setStepLoading(false);
+          }, 2000);
+          return;
+        }
+        setStepLoading(true);
+
+        // end_flag = item.end_flag;
+
         if (item.results && Array.isArray(item.results)) {
           console.log('Item pass:', item);
           const filteredResults = item.results.filter(
             (result) => result !== undefined && item.message === '检索',
           );
           const uniqueResults = new Set([...filteredResults, ...steps]);
-          // setSteps(Array.from(uniqueResults));
+
           requestAnimationFrame(() => {
             if (timeoutId !== null) {
               clearTimeout(timeoutId);
               timeoutId = setTimeout(() => {
                 setSteps(Array.from(uniqueResults));
-              }, 1000);
+              }, 1500);
             } else {
               setSteps(Array.from(uniqueResults));
             }
@@ -464,6 +450,10 @@ const ChatWindow = ({
       if (stepWs) {
         stepWs.removeEventListener('message', stepMessageHandler);
       }
+      // if (end_flag) {
+      //   setSteps([]);
+      //   end_flag = 0;
+      // }
     };
   }, [stepIsReady, steps, stepWs]);
 
@@ -723,6 +713,7 @@ const ChatWindow = ({
               setFiles={setFiles}
               steps={steps}
               stepLoading={stepLoading}
+              isLastFrame={isLastFrame}
             />
           </>
         ) : (
