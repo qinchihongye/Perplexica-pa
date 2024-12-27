@@ -118,7 +118,7 @@ const Step: React.FC<StepProps> = ({
                   ) : (
                     <CheckCircleIcon className="text-black dark:text-white mr-2 w-4 h-4 " />
                   )}
-                  <span className="text-sm/6 font-medium text-black dark:text-white group-data-[hover]:text-white/80">
+                  <span className="text-sm/6 font-medium text-black dark:text-white group-data-[hover]:text-black/80 dark:group-data-[hover]:text-white/80">
                     {key}
                   </span>
                 </div>
