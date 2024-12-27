@@ -308,7 +308,7 @@ const createBasicWebSearchRetrieverChain = (llm: BaseChatModel) => {
             }),
         );
 
-        return { query: question, docs: documents };
+        return { query: res.queryList.toString(), docs: documents };
       }
     }),
   ]);
