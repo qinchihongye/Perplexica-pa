@@ -405,11 +405,14 @@ const ChatWindow = ({
         let item: Item = JSON.parse(e.data);
 
         if (item.end_flag) {
+          console.log('清除数据');
           setTimeout(() => {
             console.log('清除数据');
             setSteps([]);
             setStepLoading(false);
           }, 500);
+          // setSteps([]);
+          // setStepLoading(false);
           return;
         } else {
           setStepLoading(true);

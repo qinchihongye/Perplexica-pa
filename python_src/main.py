@@ -136,7 +136,7 @@ async def retrieval(query_list: QueryRequest):
             result = await task
             total_results += result
             if result:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
                 await notify_data_change(
                     Message(
                         message="检索",
