@@ -41,7 +41,9 @@ export const searchSearxng = async (
   logger.info(`python 服务检索的url：${url}`);
   const payload = {
     query_list: query,
+    opts: opts
   };
+  logger.info(`python 服务检索的请求体: ${JSON.stringify(payload, null, 2)}`);
 
   try {
     const response = await axios.post(url, payload);

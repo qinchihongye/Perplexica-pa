@@ -31,16 +31,17 @@ class Zhihuretrieve:
         spellcheck: (News API) Whether to spell check query or not, defaults to True
     """
 
-    def __init__(self, api_url):
+    def __init__(self, api_url,topN=3):
         """Init params."""
-        self.api_url = api_url
+        self.api_url = api_url # 检索url
+        self.topN = topN
 
     async def generate_params(self, query_str):
         params = {
             "query": query_str,
             # "record_id": record_id if record_id else str(uuid.uuid4())
             "datasetIds": [f"{time.time()}"],
-            "topN": 3,
+            "topN": self.topN,
             "simThreshold": 0.0,
         }
         return params

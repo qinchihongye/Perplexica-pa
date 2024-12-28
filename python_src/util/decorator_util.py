@@ -43,7 +43,7 @@ def measure_time(func: Callable) -> Callable:
             save_path = os.path.join(save_root, f'{method_info}.json')
 
             current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            time_interval_dict = {"current_time":current_time,"method_info": method_info, "time_interval": elapsed_time}
+            time_interval_dict = {"current_time":current_time,"method_info": method_info,"request_body":kwargs.get("retrieval_body").dict(), "time_interval": elapsed_time}
             with open(save_path, mode='a', encoding='utf-8') as f:
                 f.write(f'{json.dumps(time_interval_dict, ensure_ascii=False)}\n')
 
@@ -63,7 +63,7 @@ def measure_time(func: Callable) -> Callable:
             save_path = os.path.join(save_root, f'{method_info}.json')
 
             current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            time_interval_dict = {"current_time":current_time,"method_info": method_info, "time_interval": elapsed_time}
+            time_interval_dict = {"current_time":current_time,"method_info": method_info,"request_body":kwargs.get("retrieval_body").dict(), "time_interval": elapsed_time}
             with open(save_path, mode='a', encoding='utf-8') as f:
                 f.write(f'{json.dumps(time_interval_dict, ensure_ascii=False)}\n')
 

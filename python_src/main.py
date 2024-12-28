@@ -6,7 +6,7 @@ import toml
 from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from multiprocessing import Process
-from typing import List
+from typing import List,Dict,Optional
 from pydantic import BaseModel
 from loguru import logger
 import asyncio
@@ -36,6 +36,7 @@ class Query(BaseModel):
 
 class QueryRequest(BaseModel):
     query_list: List[str]
+    opts:Optional[Dict] = None
 
 
 # 创建两个 FastAPI 实例
@@ -105,70 +106,103 @@ async def data_handler(data: list) -> dict:
 
 @app.post("/retrieval")
 @measure_time
-async def retrieval(query_list: QueryRequest):
-    try:
-        chat_id = str(uuid.uuid4())
-        logger.info(f"body of query: {query_list}")
-        query = query_list.query_list[0]
+async def retrieval(retrieval_body: QueryRequest):
+    chat_id = str(uuid.uuid4())
+    logger.info(f"body of query: {retrieval_body}")
+    query = retrieval_body.query_list[0]
+    opts = retrieval_body.opts
+    if opts.get("language") == "en": # 走普通检索，普通检索中 {"query_list": ["如何选择终身寿险"],"opts": {"language": "en"}}
+        logger.info(f"正在走 普通检索 !!!!!!!!!!!!!!!!!")
+        try:
+            """query 改写"""
+            rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
+            query_list = await post_completions(rewrite_query_prompt_new)
+            query_combine = [query_str for query_str in eval(query_list)]
+            await notify_data_change(
+                Message(
+                    message="改写", results=query_combine, end_flag=0, chat_id=chat_id
+                ).dict()
+            )
 
-        """query 改写"""
-        rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
-        query_list = await post_completions(rewrite_query_prompt_new)
-        query_combine = [query_str for query_str in eval(query_list)]
-        await notify_data_change(
-            Message(
-                message="改写", results=query_combine, end_flag=0, chat_id=chat_id
-            ).dict()
-        )
+            """异步检索"""
+            query_list = query_combine
+            logger.info(f"query list to retrieval: {query_list}")
+            retrieve_class = Zhihuretrieve(api_url=retrieval_url,topN=3)
 
-        """异步检索"""
-        query_list = query_combine
-        logger.info(f"query list to retrieval: {query_list}")
-        retrieve_class = Zhihuretrieve(retrieval_url)
+            total_results = []
+            #### 使用 asyncio.gather 并发执行多个异步任务
+            tasks = [
+                retrieve_class.retrieve(query_str=sub_query, time_out=time_out) for sub_query in query_list
+            ]
+            #### 逐个处理任务结果并发送给客户端,在处理完每个任务后立即将结果通过 websocket.send_json() 发送给客户端
+            for task in asyncio.as_completed(tasks):
+                result = await task
+                total_results += result
+                if result:
+                    await asyncio.sleep(1)
+                    await notify_data_change(
+                        Message(
+                            message="检索",
+                            results=result,
+                            end_flag=0,
+                            query=result[0]["query"],
+                            chat_id=chat_id,
+                            suggestions=[],
+                        ).dict()
+                    )
+            #### 去重
+            final_nodes = remove_duplicates(total_results)
+            #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
+            await notify_data_change(
+                Message(
+                    message="去重",
+                    results=final_nodes,
+                    end_flag=1,
+                    chat_id=chat_id,
+                    suggestions=[],
+                ).model_dump_json()
+            )
 
-        total_results = []
-        #### 使用 asyncio.gather 并发执行多个异步任务
-        tasks = [
-            retrieve_class.retrieve(sub_query, time_out) for sub_query in query_list
-        ]
-        #### 逐个处理任务结果并发送给客户端,在处理完每个任务后立即将结果通过 websocket.send_json() 发送给客户端
-        for task in asyncio.as_completed(tasks):
-            result = await task
-            total_results += result
-            if result:
-                await asyncio.sleep(1)
-                await notify_data_change(
-                    Message(
-                        message="检索",
-                        results=result,
-                        end_flag=0,
-                        query=result[0]["query"],
-                        chat_id=chat_id,
-                        suggestions=[],
-                    ).dict()
-                )
-        #### 去重
-        final_nodes = remove_duplicates(total_results)
-        #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
-        await notify_data_change(
-            Message(
-                message="去重",
-                results=final_nodes,
-                end_flag=1,
-                chat_id=chat_id,
-                suggestions=[],
-            ).model_dump_json()
-        )
+            return {"results": final_nodes, "suggestions": []}
 
-        return {"results": final_nodes, "suggestions": []}
+        except Exception as e:
+            msg = {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
+            await notify_data_change(msg)
+            return msg
+        finally:
+            await asyncio.sleep(1.5)
+            await notify_data_change({"end_flag": 1, "chat_id": chat_id})
 
-    except Exception as e:
-        msg = {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
-        await notify_data_change(msg)
-        return msg
-    finally:
-        await asyncio.sleep(1.5)
-        await notify_data_change({"end_flag": 1, "chat_id": chat_id})
+    elif opts.get("engines") in [["bing images","google images"],["youtube"]]: # 图片，视频检索
+        logger.info(f"正在走 图片-视频检索!!!!!!!!!!!!!!!!!")
+        try:
+            retrieve_class = Zhihuretrieve(api_url=retrieval_url,topN=9) # 图片，视频搜索9个
+            # 检索
+            node_list = await  retrieve_class.retrieve(query_str=query,time_out=time_out)
+            # node去重
+            final_nodes = remove_duplicates(node_list)
+
+            return {"results": final_nodes, "suggestions": []}
+        
+        except Exception as e:
+            return {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
+
+    elif opts.get("engines") in [["bing news"]]: # discovery
+        logger.info(f"正在走 discovery检索 !!!!!!!!!!!!!!!!!")
+        try:
+            retrieve_class = Zhihuretrieve(api_url=retrieval_url,topN=9) # 注意discovery会请求6次
+            # 检索
+            node_list = await  retrieve_class.retrieve(query_str=query,time_out=time_out)
+            # node去重
+            final_nodes = remove_duplicates(node_list)
+
+            return {"results": final_nodes, "suggestions": []}
+        except Exception as e:
+            return {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
+    
+    else:
+        logger.error(f"请求体错误: {retrieval_body}")
+        return {"code":-1,"error":"请求体错误"}
 
 
 # 启动应用
