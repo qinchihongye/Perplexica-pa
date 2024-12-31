@@ -10,6 +10,16 @@ export const loadOpenAIChatModels = async () => {
 
   try {
     const chatModels = {
+      'qwen2.5-72b-instruct': {
+        displayName: 'qwen2.5-72b-instruct',
+        model: new ChatOpenAI({
+          openAIApiKey,
+          modelName: 'qwen2.5-72b-instruct',
+          temperature: 0.7,
+        },{
+          baseURL: getOpenaiBaseUrl()
+        }),
+      },
       'qwen-long': {
         displayName: 'Qwen-Long',
         model: new ChatOpenAI({
@@ -65,16 +75,6 @@ export const loadOpenAIChatModels = async () => {
         model: new ChatOpenAI({
           openAIApiKey,
           modelName: 'gpt-4o-mini',
-          temperature: 0.7,
-        },{
-          baseURL: getOpenaiBaseUrl()
-        }),
-      },
-      'qwen2.5-72b-instruct': {
-        displayName: 'qwen2.5-72b-instruct',
-        model: new ChatOpenAI({
-          openAIApiKey,
-          modelName: 'qwen2.5-72b-instruct',
           temperature: 0.7,
         },{
           baseURL: getOpenaiBaseUrl()
