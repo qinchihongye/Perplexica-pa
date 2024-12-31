@@ -12,13 +12,15 @@ from loguru import logger
 import asyncio
 import uvicorn
 
-from __init__ import active_websockets
 from util.base_util import remove_duplicates
 from util.prompts import rewrite_query_prompt
 from route.oneapi_llm import post_completions
 from route.retrieve_base import Zhihuretrieve
 from util.decorator_util import measure_time
 from fileds.ws_message import Message
+
+
+active_websockets: list[WebSocket] = []
 
 
 # 读取 config.toml 文件
@@ -47,6 +49,7 @@ app = FastAPI()
 @app.websocket("/rewrite_retrieval")  # WebSocket 接口
 @measure_time
 async def retrieval_ws(websocket: WebSocket):
+    global active_websockets
     try:
         await websocket.accept()
         active_websockets.append(websocket)
@@ -82,11 +85,15 @@ async def rewrite(query: Query):
 
 
 async def notify_data_change(new_data: dict):
+    global active_websockets
     # 遍历所有活跃的WebSocket连接并发送新数据
     disconnected_websockets = []
     for ws in active_websockets:
         try:
-            logger.info(f"发送消息:{new_data.get("message")}")
+            try:
+                logger.info(f"发送消息:{new_data.get('message')}")
+            except:
+                pass
             await ws.send_text(json.dumps(new_data, ensure_ascii=False))
         except Exception as e:
             # 如果发送失败，可能是因为连接已关闭
@@ -205,4 +212,4 @@ if __name__ == "__main__":
     import platform
     sys_name = platform.system()
     number_of_workers = 4 if sys_name=='Linux' else 1
-    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=1, reload = False)
+    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=number_of_workers, reload = False)
