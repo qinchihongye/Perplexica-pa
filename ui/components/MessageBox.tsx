@@ -54,6 +54,7 @@ const MessageBox = ({
   const [speechMessage, setSpeechMessage] = useState(message.content);
   const [messageIdList, setMessageIdList] = useState<Set<string>>(new Set());
   const [_steps, setSteps] = useState<Object[]>([])
+  const [stepList, setStepList] = useState(new Set())
 
   const handlerSearch = (mId: string) => {
     const uniqueResults = new Set([...Array.from(messageIdList), mId]);
@@ -66,15 +67,13 @@ const MessageBox = ({
     }
   }
 
-  const handelerStepChange = (event: string)=>{
-    if(event==='step is commin'){
-      
-    }
-
+  const handelerStepChange = (mId: string)=>{
+    const uni = Array.from(stepList)
+    setStepList(new Set([...uni, mId]))
   }
 
   const style = (mId:string)=>{
-    return {display: messageIdList.has(mId) ? 'block' : 'none'}
+    return {display: stepList.has(mId) ? 'block' : 'none'}
   }
 
   useEffect(() => {

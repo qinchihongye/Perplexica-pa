@@ -166,11 +166,12 @@ const Step: React.FC<StepProps> = ({
                           />
                           <a
                             href={
-                              result.url.split('/display/')[0] +
-                              '/display/' +
-                              encodeURIComponent(
-                                result.url.split('/display/')[1],
-                              )
+                              // result.url.split('/display/')[0] +
+                              // '/display/' +
+                              // encodeURIComponent(
+                              //   result.url.split('/display/')[1],
+                              // )
+                              result.url
                             }
                             className="text-sm font-medium text-black dark:text-white hover:text-black/60 dark:hover:text-white/80"
                             target="_blank"
