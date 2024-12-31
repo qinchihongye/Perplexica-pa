@@ -86,7 +86,7 @@ async def notify_data_change(new_data: dict):
     disconnected_websockets = []
     for ws in active_websockets:
         try:
-            logger.info("发送消息")
+            logger.info(f"发送消息:{new_data.get("message")}")
             await ws.send_text(json.dumps(new_data, ensure_ascii=False))
         except Exception as e:
             # 如果发送失败，可能是因为连接已关闭
@@ -134,7 +134,7 @@ async def retrieval(retrieval_body: QueryRequest):
                 total_results += result
                 if result:
                     await asyncio.sleep(1)
-                    logger.info(result)
+                    # logger.info(result)
                     await notify_data_change(
                         Message(
                             message="检索",
