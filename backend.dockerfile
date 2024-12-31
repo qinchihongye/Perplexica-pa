@@ -24,6 +24,7 @@ FROM node:18-alpine
 WORKDIR /home/perplexica
 
 COPY --from=builder /home/perplexica /home/perplexica
+# RUN rm -rf /home/perplexica/node_modules
 
 
 CMD ["yarn", "start"]

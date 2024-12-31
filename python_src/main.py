@@ -86,6 +86,7 @@ async def notify_data_change(new_data: dict):
     disconnected_websockets = []
     for ws in active_websockets:
         try:
+            logger.info("发送消息")
             await ws.send_text(json.dumps(new_data, ensure_ascii=False))
         except Exception as e:
             # 如果发送失败，可能是因为连接已关闭
@@ -133,6 +134,7 @@ async def retrieval(retrieval_body: QueryRequest):
                 total_results += result
                 if result:
                     await asyncio.sleep(1)
+                    logger.info(result)
                     await notify_data_change(
                         Message(
                             message="检索",
@@ -203,4 +205,4 @@ if __name__ == "__main__":
     import platform
     sys_name = platform.system()
     number_of_workers = 4 if sys_name=='Linux' else 1
-    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=number_of_workers, reload = False)
+    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=1, reload = False)

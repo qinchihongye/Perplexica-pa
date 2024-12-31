@@ -18,8 +18,6 @@ COPY ui /home/perplexica/
 RUN yarn install --frozen-lockfile
 RUN yarn build
 
-RUN ls
-
 # 第二阶段：运行阶段
 FROM node:20.18.0-alpine
 
