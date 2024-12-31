@@ -91,7 +91,7 @@ const useWebSocket = (url: string) => {
           console.log('[DEBUG] WebSocket manually closed');
         }
       };
-    }, 500);
+    }, 1000);
   }, [url, ws]);
 
   return { ws, isReady };
@@ -411,8 +411,6 @@ const ChatWindow = ({
             setSteps([]);
             setStepLoading(false);
           }, 500);
-          // setSteps([]);
-          // setStepLoading(false);
           return;
         } else {
           setStepLoading(true);
@@ -426,14 +424,6 @@ const ChatWindow = ({
           const uniqueResults = new Set([...filteredResults, ...steps]);
 
           requestAnimationFrame(() => {
-            // if (timeoutId !== null) {
-            //   clearTimeout(timeoutId);
-            //   timeoutId = setTimeout(() => {
-            //     setSteps(Array.from(uniqueResults));
-            //   }, 500);
-            // } else {
-            //   setSteps(Array.from(uniqueResults));
-            // }
             setSteps(Array.from(uniqueResults));
           });
         }

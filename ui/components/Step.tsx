@@ -37,6 +37,8 @@ interface Item {
   iframe_src?: string;
 }
 
+type ChildEventCallback = (eventData: string) => void;
+
 interface StepProps {
   isLast: boolean;
   loading: boolean;
@@ -44,6 +46,9 @@ interface StepProps {
   steps?: Item[];
   stepLoading: boolean;
   messageId: string;
+  onSeach?: ChildEventCallback
+  onReady?: ChildEventCallback,
+  onStepChange?: ChildEventCallback
 }
 
 const Step: React.FC<StepProps> = ({
@@ -51,6 +56,9 @@ const Step: React.FC<StepProps> = ({
   stepLoading,
   messageId,
   loading,
+  onSeach, 
+  onReady,
+  onStepChange,
 }) => {
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
@@ -59,30 +67,32 @@ const Step: React.FC<StepProps> = ({
   const [stoped, setStoped] = useState<boolean>(false);
 
   useEffect(() => {
-    if (ownMessageId === '') {
+    if (ownMessageId.length<1) {
       if (messageId) {
-        console.log(messageId);
+        console.log('MessageId', messageId)
         setOwnMessageId(messageId);
+        onReady?onReady('yes'):null
       }
     }
 
     if (!stepLoading) setStoped(true);
 
     if (
+      messageId == ownMessageId &&
       !stoped &&
-      messageId &&
       steps &&
       loading &&
-      messageId == ownMessageId &&
       steps.length > 0
     ) {
       console.log('Steps:', steps);
+      onStepChange?onStepChange(ownMessageId):null
       setSteps(steps);
     }
-  }, [steps, messageId, loading, ownMessageId, stepLoading, stoped]);
+  }, [messageId, ownMessageId, steps, loading, ownMessageId, stepLoading, stoped]);
 
   useEffect(() => {
     if (loading && messageId == ownMessageId) {
+      onSeach?onSeach(messageId):null
       const keysSet = new Set(keys);
       _steps.map((it) => {
         if (it.query) keysSet.add(it.query);
@@ -94,7 +104,7 @@ const Step: React.FC<StepProps> = ({
 
   return (
     <div className="divide-y w-full divide-white/5 rounded-xl bg-white/5 mb-5 ml-0">
-      {keys.map((key, index) => (
+      {keys.length?keys.map((key, index) => (
         <Disclosure
           key={index}
           as="div"
@@ -185,7 +195,9 @@ const Step: React.FC<StepProps> = ({
             </>
           )}
         </Disclosure>
-      ))}
+      )):<p className="text-sm/6 font-medium dark:text-white/60 text-black ml-2 p-2">
+      No Search
+    </p>}
     </div>
   );
 };

@@ -12,6 +12,7 @@ from loguru import logger
 import asyncio
 import uvicorn
 
+from __init__ import active_websockets
 from util.base_util import remove_duplicates
 from util.prompts import rewrite_query_prompt
 from route.oneapi_llm import post_completions
@@ -80,9 +81,6 @@ async def rewrite(query: Query):
         return {"code": -1, "error": f"{e}: {traceback.format_exc}"}
 
 
-active_websockets: list[WebSocket] = []
-
-
 async def notify_data_change(new_data: dict):
     # 遍历所有活跃的WebSocket连接并发送新数据
     disconnected_websockets = []
@@ -92,16 +90,11 @@ async def notify_data_change(new_data: dict):
         except Exception as e:
             # 如果发送失败，可能是因为连接已关闭
             disconnected_websockets.append(ws)
-            print(f"连接失败：{e}")
+            logger.error(f"连接失败：{e}")
 
     # 移除所有已断开的连接
     for ws in disconnected_websockets:
         active_websockets.remove(ws)
-
-
-async def data_handler(data: list) -> dict:
-    _data = {}
-    _data[data[0]["query"]] = data
 
 
 @app.post("/retrieval")
@@ -207,4 +200,6 @@ async def retrieval(retrieval_body: QueryRequest):
 
 # 启动应用
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=pyport)
+    import platform
+    sys_name = platform.system()
+    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=1 if sys_name=='Windows' else 4, reload = False)
