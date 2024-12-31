@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /home/perplexica
 
@@ -17,5 +17,13 @@ RUN apk add --no-cache vim \
     && yarn install --frozen-lockfile --network-timeout 600000 \
     && yarn build \
     && rm -rf /home/perplexica/node_modules/.cache
+
+
+FROM node:18-alpine
+
+WORKDIR /home/perplexica
+
+COPY --from=builder /home/perplexica /home/perplexica
+
 
 CMD ["yarn", "start"]
