@@ -202,4 +202,5 @@ async def retrieval(retrieval_body: QueryRequest):
 if __name__ == "__main__":
     import platform
     sys_name = platform.system()
-    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=1 if sys_name=='Windows' else 4, reload = False)
+    number_of_workers = 4 if sys_name=='Linux' else 1
+    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=number_of_workers, reload = False)

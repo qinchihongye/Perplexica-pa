@@ -7,6 +7,7 @@ import random
 import aiohttp
 from loguru import logger
 import time
+from urllib.parse import quote
 
 # 读取 config.toml 文件
 with open("config.toml", "r") as file:
@@ -83,7 +84,7 @@ class Zhihuretrieve:
                 node_dict["content"] = doc["content"]
                 node_dict["score"] = doc["score"]
                 node_dict["length"] = doc["length"]
-                node_dict["url"] = doc["url"]
+                node_dict["url"] = quote(doc["url"] ,safe = '/:') # quote(doc["url"], safe='/:?=&')
                 node_dict["img_src"] = (
                     img_src_base if len(pictureUrls) == 0 else random.choice(pictureUrls) # img_src_base if not doc.get("img_src") else doc.get("img_src")
                 )
