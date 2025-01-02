@@ -101,8 +101,8 @@ async def notify_data_change(new_data: dict):
             logger.error(f"连接失败：{e}")
 
     # 移除所有已断开的连接
-    for ws in disconnected_websockets:
-        active_websockets.remove(ws)
+    # for ws in disconnected_websockets:
+        # active_websockets.remove(ws)
 
 
 @app.post("/retrieval")
@@ -141,7 +141,7 @@ async def retrieval(retrieval_body: QueryRequest):
                 total_results += result
                 if result:
                     await asyncio.sleep(1)
-                    # logger.info(result)
+                    logger.info(f"已检索：'{result[0]}'")
                     await notify_data_change(
                         Message(
                             message="检索",
@@ -212,4 +212,4 @@ if __name__ == "__main__":
     import platform
     sys_name = platform.system()
     number_of_workers = 4 if sys_name=='Linux' else 1
-    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=number_of_workers, reload = False)
+    uvicorn.run('main:app', host="0.0.0.0", port=pyport, workers=1, reload = False)

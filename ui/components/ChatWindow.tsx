@@ -424,7 +424,9 @@ const ChatWindow = ({
           const uniqueResults = new Set([...filteredResults, ...steps]);
 
           requestAnimationFrame(() => {
-            setSteps(Array.from(uniqueResults));
+            timeoutId = setTimeout(() => {
+              setSteps(Array.from(uniqueResults));
+            }, 100)
           });
         }
       } catch (e) {
@@ -444,10 +446,6 @@ const ChatWindow = ({
       if (stepWs) {
         stepWs.removeEventListener('message', stepMessageHandler);
       }
-      // if (end_flag) {
-      //   setSteps([]);
-      //   end_flag = 0;
-      // }
     };
   }, [stepIsReady, steps, stepWs]);
 
