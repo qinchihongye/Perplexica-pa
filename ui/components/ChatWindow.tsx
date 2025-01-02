@@ -54,7 +54,7 @@ const delayExecute = (func: any, wait: string | number | any | undefined) => {
   };
 };
 
-const useWebSocket = (url: string) => {
+const useWebSocket = (url: string, setError: (error: boolean) => void) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -74,6 +74,7 @@ const useWebSocket = (url: string) => {
         };
 
         wsInstance.onerror = () => {
+          setError(true)
           console.error('WebSocket connection error.');
         };
 
@@ -91,7 +92,7 @@ const useWebSocket = (url: string) => {
           console.log('[DEBUG] WebSocket manually closed');
         }
       };
-    }, 1000);
+    }, 500);
   }, [url, ws]);
 
   return { ws, isReady };
@@ -378,6 +379,7 @@ const ChatWindow = ({
 
   const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
     `${process.env.NEXT_PUBLIC_PYWS_API}:${process.env.NEXT_PUBLIC_PY_PORT}/rewrite_retrieval`,
+    setHasError
   );
 
   useEffect(() => {
