@@ -47,8 +47,10 @@ interface StepProps {
   stepLoading: boolean;
   messageId: string;
   onSeach?: ChildEventCallback
-  onReady?: ChildEventCallback,
-  onStepChange?: ChildEventCallback
+  onReady?: ChildEventCallback;
+  onStepChange?: ChildEventCallback;
+  isLastFrame: boolean
+  onLast: ChildEventCallback
 }
 
 const Step: React.FC<StepProps> = ({
@@ -59,6 +61,8 @@ const Step: React.FC<StepProps> = ({
   onSeach, 
   onReady,
   onStepChange,
+  isLastFrame,
+  onLast,
 }) => {
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
@@ -101,6 +105,11 @@ const Step: React.FC<StepProps> = ({
       console.log(keys);
     }
   }, [_steps, loading, messageId, ownMessageId]);
+
+  useEffect(()=>{
+    if(isLastFrame)
+      onLast('yes')
+  },[isLastFrame])
 
   return (
     <div className="divide-y w-full divide-white/5 rounded-xl bg-white/5 mb-5 ml-0">

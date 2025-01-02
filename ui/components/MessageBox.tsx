@@ -38,6 +38,8 @@ const MessageBox = ({
   sendMessage,
   steps,
   stepLoading,
+  isLastFrame,
+  onLast,
 }: {
   message: Message;
   messageIndex: number;
@@ -49,6 +51,8 @@ const MessageBox = ({
   sendMessage: (message: string) => void;
   steps: Object[];
   stepLoading: boolean;
+  isLastFrame: boolean;
+  onLast:(event: string) => void;
 }) => {
   const [parsedMessage, setParsedMessage] = useState(message.content);
   const [speechMessage, setSpeechMessage] = useState(message.content);
@@ -137,6 +141,8 @@ const MessageBox = ({
         onSeach={handlerSearch}
         onReady={handelerReady}
         onStepChange={handelerStepChange}
+        isLastFrame={isLastFrame}
+        onLast={onLast}
       ></Step>
     </div>
   )

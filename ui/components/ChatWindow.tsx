@@ -29,32 +29,7 @@ export interface File {
 
 const clientId = new Date().toISOString();
 
-const debounce = (func: any, wait: string | number | any | undefined) => {
-  let timeout: string | number | any | undefined;
-  return function executedFunction(...args: any) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
-
-const delayExecute = (func: any, wait: string | number | any | undefined) => {
-  let timeout: string | number | any | undefined;
-  return function executedFunction(...args: any) {
-    const later = () => {
-      func(...args);
-    };
-    // 清除之前的定时器
-    clearTimeout(timeout);
-    // 设置新的定时器
-    timeout = setTimeout(later, wait);
-  };
-};
-
-const useWebSocket = (url: string, setError: (error: boolean) => void) => {
+const useWebSocket = (url: string, setError: (error: boolean) => void, setIsWSReady:(ready: boolean) => void) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -93,7 +68,7 @@ const useWebSocket = (url: string, setError: (error: boolean) => void) => {
         }
       };
     }, 500);
-  }, [url, ws]);
+  }, [url, ws, setIsReady]);
 
   return { ws, isReady };
 };
@@ -377,9 +352,16 @@ const ChatWindow = ({
     setHasError,
   );
 
+  const onLast = (envent: string) => {
+    console.log('最后清除数据')
+    setSteps([])
+    setStepLoading(false);
+  }
+
   const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
     `${process.env.NEXT_PUBLIC_PYWS_API}:${process.env.NEXT_PUBLIC_PY_PORT}/rewrite_retrieval`,
-    setHasError
+    setHasError,
+    setIsWSReady,
   );
 
   useEffect(() => {
@@ -407,12 +389,13 @@ const ChatWindow = ({
         let item: Item = JSON.parse(e.data);
 
         if (item.end_flag) {
-          console.log('清除数据');
-          setTimeout(() => {
-            console.log('清除数据');
-            setSteps([]);
-            setStepLoading(false);
-          }, 500);
+          // console.log('清除数据');
+          // setTimeout(() => {
+          //   console.log('清除数据');
+          //   setSteps([]);
+          //   setStepLoading(false);
+          // }, 500);
+          setIsLastFrame(true)
           return;
         } else {
           setStepLoading(true);
@@ -707,6 +690,8 @@ const ChatWindow = ({
               setFiles={setFiles}
               steps={steps}
               stepLoading={stepLoading}
+              isLastFrame={isLastFrame}
+              onLast={onLast}
             />
           </>
         ) : (

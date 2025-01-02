@@ -23,6 +23,8 @@ const Chat = ({
   setFiles,
   steps,
   stepLoading,
+  isLastFrame,
+  onLast,
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
@@ -35,6 +37,8 @@ const Chat = ({
   setFiles: (files: File[]) => void;
   steps: Object[];
   stepLoading: boolean;
+  isLastFrame: boolean;
+  onLast:(event: string) => void;
 }) => {
   const [dividerWidth, setDividerWidth] = useState(0);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -83,6 +87,8 @@ const Chat = ({
               sendMessage={sendMessage}
               steps={steps}
               stepLoading={stepLoading}
+              isLastFrame={isLastFrame}
+              onLast={onLast}
             />
             {!isLast && msg.role === 'assistant' && (
               <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />
