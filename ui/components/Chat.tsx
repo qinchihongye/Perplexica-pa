@@ -61,7 +61,7 @@ const Chat = ({
   });
 
   useEffect(() => {
-    messageEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    // messageEnd.current?.scrollIntoView({ behavior: 'smooth' });
 
     if (messages.length === 1) {
       document.title = `${messages[0].content.substring(0, 30)} - Perplexica`;

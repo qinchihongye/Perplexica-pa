@@ -51,6 +51,7 @@ interface StepProps {
   onStepChange?: ChildEventCallback;
   isLastFrame: boolean
   onLast: ChildEventCallback
+  onSteps?: (eventData: Item[]) => void;
 }
 
 const Step: React.FC<StepProps> = ({
@@ -63,6 +64,7 @@ const Step: React.FC<StepProps> = ({
   onStepChange,
   isLastFrame,
   onLast,
+  onSteps,
 }) => {
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
@@ -102,8 +104,9 @@ const Step: React.FC<StepProps> = ({
         if (it.query) keysSet.add(it.query);
       });
       setkeys(Array.from(keysSet));
-      console.log(keys);
+      console.log('Keys', keys);
     }
+    onSteps?onSteps(_steps):null;
   }, [_steps, loading, messageId, ownMessageId]);
 
   useEffect(()=>{
@@ -126,11 +129,12 @@ const Step: React.FC<StepProps> = ({
             <>
               <DisclosureButton className="group flex w-full items-center justify-between relative z-auto">
                 <div className="flex items-center">
-                  {steps && steps.length == index + 1 ? (
+                  {/* {steps && steps.length == index + 1 ? ( */}
+                  {loading ? (
                     <Disc3
                       className={cn(
                         'text-black dark:text-white mr-2',
-                        stepLoading ? 'animate-spin' : 'animate-none',
+                        loading ? 'animate-spin' : 'animate-none',
                       )}
                       size={15}
                     />

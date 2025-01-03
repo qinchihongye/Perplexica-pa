@@ -27,6 +27,20 @@ type DataObject<K extends string | number | symbol, V> = {
   [key in K]: V;
 };
 
+interface Item {
+  query?: string;
+  title?: string;
+  content?: string;
+  score?: Number;
+  length?: Number;
+  url?: string;
+  img_src?: string;
+  thumbnail_src?: string;
+  thumbnail?: string;
+  author?: string;
+  iframe_src?: string;
+}
+
 const MessageBox = ({
   message,
   messageIndex,
@@ -59,6 +73,7 @@ const MessageBox = ({
   const [messageIdList, setMessageIdList] = useState<Set<string>>(new Set());
   const [_steps, setSteps] = useState<Object[]>([])
   const [stepList, setStepList] = useState(new Set())
+  const [childSteps, setChildSteps] = useState<Item[]>([]);
 
   const handlerSearch = (mId: string) => {
     const uniqueResults = new Set([...Array.from(messageIdList), mId]);
@@ -77,7 +92,7 @@ const MessageBox = ({
   }
 
   const style = (mId:string)=>{
-    return {display: stepList.has(mId) ? 'block' : 'none'}
+    return {display: stepList.has(mId)? 'block' : 'none'}
   }
 
   useEffect(() => {

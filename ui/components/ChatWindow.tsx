@@ -35,9 +35,9 @@ const useWebSocket = (url: string, setError: (error: boolean) => void, setIsWSRe
 
   useEffect(() => {
     setTimeout(() => {
-      if (localStorage.getItem('clientId') === clientId) {
-        return;
-      }
+      // if (localStorage.getItem('clientId') === clientId) {
+      //   return;
+      // }
       if (!ws) {
         localStorage.setItem('clientId', clientId);
 
@@ -354,8 +354,11 @@ const ChatWindow = ({
 
   const onLast = (envent: string) => {
     console.log('最后清除数据')
-    setSteps([])
-    setStepLoading(false);
+    setTimeout(()=>{
+      setSteps([])
+      setStepLoading(false);
+      setIsLastFrame(false);
+    }, 500)
   }
 
   const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
