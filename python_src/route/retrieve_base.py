@@ -103,5 +103,5 @@ class Zhihuretrieve:
         except Exception as e:
             new_nodes = []
             logger.error(f"Exception retrieval: {e} | {traceback.format_exc()}")
-
+            logger.error(f"错误的返回的信息如下: results\n:{results}")
         return new_nodes
