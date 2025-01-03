@@ -16,7 +16,7 @@ const LoginForm: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded shadow-md">
+    <div className="max-w-md mx-auto mt-8 p-6 dark:bg-white rounded shadow-md">
       <h2 className="text-2xl font-bold mb-4">登录</h2>
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         <div>
@@ -24,7 +24,7 @@ const LoginForm: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
           <input
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {setUsername(e.target.value); setError('') }}
             className="mt-2 w-full p-2 border border-gray-300 rounded"
           />
         </div>
