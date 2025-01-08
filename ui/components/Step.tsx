@@ -12,6 +12,7 @@ import {
 import { Disc3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
+import { handleClick } from '@/lib/utils'
 
 interface Step {
   message?: string;
@@ -92,7 +93,8 @@ const Step: React.FC<StepProps> = ({
     ) {
       console.log('Steps:', steps);
       onStepChange?onStepChange(ownMessageId):null
-      setSteps(steps);
+      const s = new Set(steps)
+      setSteps(Array.from(s));
     }
   }, [messageId, ownMessageId, steps, loading, ownMessageId, stepLoading, stoped]);
 
@@ -188,6 +190,7 @@ const Step: React.FC<StepProps> = ({
                             }
                             className="text-sm font-medium text-black dark:text-white hover:text-black/60 dark:hover:text-white/80"
                             target="_blank"
+                            onClick={handleClick}
                           >
                             {result.title.length < 10
                               ? result.title

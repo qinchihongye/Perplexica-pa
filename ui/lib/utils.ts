@@ -25,3 +25,27 @@ export const formatTimeDifference = (
   else
     return `${Math.floor(diffInSeconds / 31536000)} year${Math.floor(diffInSeconds / 31536000) !== 1 ? 's' : ''}`;
 };
+
+
+export const handleClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
+  event.preventDefault(); // 阻止默认的链接跳转行为
+
+  const targetUrl = event.currentTarget.href;
+  const token = 'd27121560bdb4d9d8a780cb24bf9a399'; 
+
+  fetch(targetUrl, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'token': token
+    }
+  })
+  .then(response => response.blob())
+  .then(blob => {
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // 在新标签页中打开这个Blob URL
+    window.open(blobUrl, '_blank');
+  })
+  .catch(error => console.error('Error:', error));
+};
