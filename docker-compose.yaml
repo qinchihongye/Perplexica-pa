@@ -35,8 +35,8 @@ services:
       - NEXT_PUBLIC_PY_API=http://host.docker.internal
       - NEXT_PUBLIC_PYWS_API=ws://127.0.0.1
       - NEXT_PUBLIC_PY_PORT=8013
-      - NEXT_PUBLIC_ADMIN=admin
-      - NEXT_PUBLIC_PASSWORD=password
+      - NEXT_PUBLIC_ADMIN=user
+      - NEXT_PUBLIC_PASSWORD=Pafc?2025
     depends_on:
       - perplexica-backend
     ports:
