@@ -15,7 +15,7 @@ with open("config.toml", "r") as file:
 
 # 读取配置
 retrieval_url = config["GENERAL"]["RETRIEVALURL"]
-
+verify_token = config["GENERAL"]["VERIFYTOKEN"]
 
 class Zhihuretrieve:
     """
@@ -44,6 +44,7 @@ class Zhihuretrieve:
             "datasetIds": [f"{time.time()}"],
             "topN": self.topN,
             "simThreshold": 0.0,
+            "token": verify_token
         }
         return params
 

@@ -10,6 +10,7 @@ interface Config {
     SIMILARITY_MEASURE: string;
     KEEP_ALIVE: string;
     PYPORT: number;
+    VERIFYTOKEN: string;
   };
   API_KEYS: {
     OPENAI: string;
@@ -59,6 +60,8 @@ export const getOpenaiBaseUrl = () => loadConfig().API_ENDPOINTS.OPENAIBASEURL;
 export const getSelfSearchUrl = () => loadConfig().API_ENDPOINTS.SELFSEARCHURL;
 
 export const getPyPort = () => loadConfig().GENERAL.PYPORT;
+
+export const getVerifyToken = () => loadConfig().GENERAL.VERIFYTOKEN;
 
 export const updateConfig = (config: RecursivePartial<Config>) => {
   const currentConfig = loadConfig();

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import logger from '../utils/logger';
-import { getSelfSearchUrl, getPyPort } from '../config';
+import { getSelfSearchUrl, getPyPort,getVerifyToken } from '../config';
 
 interface SearxngSearchOptions {
   categories?: string[];
@@ -20,9 +20,13 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
+const DEFAULT_TOKEN = getVerifyToken();
+logger.info(`默认 token: ${DEFAULT_TOKEN}`);
+
 export const searchSearxng = async (
   query: string | string[],
   opts?: SearxngSearchOptions,
+  token: string = DEFAULT_TOKEN
 ) => {
   if (typeof query === 'string') {
     // 如果 query 是字符串类型，将其转换为单元素数组
@@ -41,7 +45,8 @@ export const searchSearxng = async (
   logger.info(`python 服务检索的url：${url}`);
   const payload = {
     query_list: query,
-    opts: opts
+    opts: opts,
+    token: token,
   };
   logger.info(`python 服务检索的请求体: ${JSON.stringify(payload, null, 2)}`);
 

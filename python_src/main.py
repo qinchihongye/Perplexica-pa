@@ -31,15 +31,13 @@ with open("config.toml", "r") as file:
 retrieval_url = config["GENERAL"]["RETRIEVALURL"]
 pyport = config["GENERAL"]["PYPORT"]
 time_out = config["GENERAL"]["TIMEOUT"]
-
-
-class Query(BaseModel):
-    query: str
+verify_token = config["GENERAL"]["VERIFYTOKEN"]
 
 
 class QueryRequest(BaseModel):
     query_list: List[str]
     opts:Optional[Dict] = None
+    token:str
 
 
 # 创建两个 FastAPI 实例
@@ -73,8 +71,18 @@ async def healthcheck():
 # query改写router
 @app.post("/rewrite_query")
 @measure_time
-async def rewrite(query: Query):
+async def rewrite(rewrite_body: QueryRequest):
     try:
+        # 鉴权
+        token = rewrite_body.token
+        if token != verify_token:
+            logger.error(f"token verify error")
+            return {"code": -1, "error": "token verify error"}
+        logger.info(f"鉴权成功: body of query: {rewrite_body}")
+
+        query = rewrite_body.query_list[0]
+
+        # 改写
         rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
         query_list = await post_completions(rewrite_query_prompt_new)
         query_combine = [query_str for query_str in json.loads(query_list)]
@@ -108,10 +116,18 @@ async def notify_data_change(new_data: dict):
 @app.post("/retrieval")
 @measure_time
 async def retrieval(retrieval_body: QueryRequest):
+    # 鉴权
+    token = retrieval_body.token
+    if token != verify_token:
+        logger.error(f"token verify error")
+        return {"code": -1, "error": "token verify error"}
+
     chat_id = str(uuid.uuid4())
-    logger.info(f"body of query: {retrieval_body}")
+    logger.info(f"鉴权成功: body of query: {retrieval_body}")
     query = retrieval_body.query_list[0]
     opts = retrieval_body.opts
+
+    # 改写+检索
     if opts.get("language") == "en": # 走普通检索，普通检索中 {"query_list": ["如何选择终身寿险"],"opts": {"language": "en"}}
         logger.info(f"正在走 普通检索 !!!!!!!!!!!!!!!!!")
         try:
