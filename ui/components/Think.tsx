@@ -30,7 +30,7 @@ const Think: React.FC<{
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: initialQuery }),
+        body: JSON.stringify({ query_list: [initialQuery], token: process.env.NEXT_PUBLIC_VERIFYTOKEN }),
       });
       if (!response.ok) {
         // throw new Error(`HTTP error! status: ${response.status}`);

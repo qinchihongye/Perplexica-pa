@@ -33,19 +33,37 @@ export const handleClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEven
   const targetUrl = event.currentTarget.href;
   const token = 'd27121560bdb4d9d8a780cb24bf9a399'; 
 
-  fetch(targetUrl, {
+  fetch(`/doc/display${targetUrl.split('display')[1]}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'token': token
-    }
+      'token': process.env.NEXT_PUBLIC_VERIFYTOKEN as string,
+      'Access-Control-Allow-Origin': '*'
+    },
+    // mode: 'no-cors'
   })
-  .then(response => response.blob())
-  .then(blob => {
-    const blobUrl = window.URL.createObjectURL(blob);
+  .then(response => response.text())
+  .then(text => {
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Data</title>
+  <style>
+    body { font-family: monospace; white-space: pre; }
+  </style>
+</head>
+<body>
+  <pre>${text}</pre>
+</body>
+</html>
+`;
+    console.log(htmlContent)
     
-    // 在新标签页中打开这个Blob URL
-    window.open(blobUrl, '_blank');
+    const htmlBlob = new Blob([text], { type: 'text/html' });
+    const htmlBlobUrl = window.URL.createObjectURL(htmlBlob);
+    
+    window.open(htmlBlobUrl, '_blank');
   })
   .catch(error => console.error('Error:', error));
 };
