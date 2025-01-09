@@ -103,9 +103,9 @@ const MessageBox = ({
     const handleLinkClick = (event: MouseEvent) => {
       const target = event.target as HTMLAnchorElement;
       const href = target.getAttribute('href');
-      if(href && href.includes('display'))
+      if (href && href.includes('display'))
         event.preventDefault(); // 阻止默认跳转行为
-        handleClick(null, href || '')
+      handleClick(null, href || '')
     };
 
     links.forEach(link => {
@@ -160,7 +160,7 @@ const MessageBox = ({
         </div>
       )}
 
-      {(
+      {message.role === 'assistant' && (
         <div style={style(message.messageId)}>
           <div className="flex items-center mb-3">
             <MagnifyingGlassIcon
