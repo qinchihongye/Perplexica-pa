@@ -12,7 +12,8 @@ interface ResponseProps {
 
 const Think: React.FC<{
   initialQuery: string;
-}> = ({ initialQuery }) => {
+  queryList: string[];
+}> = ({ initialQuery, queryList }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [dots, setDots] = useState('');
   const [queryCombineStep, setQueryCombineStep] = useState<string>('');
@@ -21,39 +22,45 @@ const Think: React.FC<{
   const states = ['问题分析', '全网搜索', '问题整理'];
 
   // 使用 useCallback 来缓存 fetchData 函数
-  const fetchData = useCallback(async () => {
-    if (!initialQuery || localStorage.getItem('query') == initialQuery) return;
-    localStorage.setItem('query', initialQuery);
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query_list: [initialQuery], token: process.env.NEXT_PUBLIC_VERIFYTOKEN }),
-      });
-      if (!response.ok) {
-        // throw new Error(`HTTP error! status: ${response.status}`);
-        console.error(`HTTP error! status: ${response.status}`);
-      }
-      const result: ResponseProps = await response.json();
-      if (result.query_combine) {
-        setQueryCombine(result.query_combine);
-      }
-      setCurrentStep((prevStep) => prevStep + 1);
-      setIsDataFetched(true);
-    } catch (e) {
-      console.error('Fetching data failed:', e);
-    } finally {
-      localStorage.setItem('query', '');
-    }
-  }, [initialQuery]); // 依赖项为 initialQuery
+  // const fetchData = useCallback(async () => {
+  //   if (!initialQuery || localStorage.getItem('query') == initialQuery) return;
+  //   localStorage.setItem('query', initialQuery);
+  //   try {
+  //     const response = await fetch(url, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ query_list: [initialQuery], token: process.env.NEXT_PUBLIC_VERIFYTOKEN }),
+  //     });
+  //     if (!response.ok) {
+  //       // throw new Error(`HTTP error! status: ${response.status}`);
+  //       console.error(`HTTP error! status: ${response.status}`);
+  //     }
+  //     const result: ResponseProps = await response.json();
+  //     if (result.query_combine) {
+  //       setQueryCombine(result.query_combine);
+  //     }
+  //     setCurrentStep((prevStep) => prevStep + 1);
+  //     setIsDataFetched(true);
+  //   } catch (e) {
+  //     console.error('Fetching data failed:', e);
+  //   } finally {
+  //     localStorage.setItem('query', '');
+  //   }
+  // }, [initialQuery]); // 依赖项为 initialQuery
+
+  // useEffect(() => {
+  //   if (!isDataFetched) {
+  //     fetchData();
+  //   }
+  // }, [fetchData, isDataFetched]);
 
   useEffect(() => {
-    if (!isDataFetched) {
-      fetchData();
-    }
-  }, [fetchData, isDataFetched]);
+    if(queryList && queryList.length > 0)
+      setQueryCombine(queryList)
+  }, [queryList]);
+
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;

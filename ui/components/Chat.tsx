@@ -20,6 +20,7 @@ const Chat = ({
   stepLoading,
   isLastFrame,
   onLast,
+  queryList
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
@@ -34,6 +35,7 @@ const Chat = ({
   stepLoading: boolean;
   isLastFrame: boolean;
   onLast:(event: string) => void;
+  queryList: string[];
 }) => {
   const [dividerWidth, setDividerWidth] = useState(0);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -84,6 +86,7 @@ const Chat = ({
               stepLoading={stepLoading}
               isLastFrame={isLastFrame}
               onLast={onLast}
+              queryList={queryList}
             />
             {!isLast && msg.role === 'assistant' && (
               <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />

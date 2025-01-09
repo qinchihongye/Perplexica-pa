@@ -345,6 +345,7 @@ const ChatWindow = ({
   const [steps, setSteps] = useState<Object[]>([]);
   const [wsConected, setConected] = useState<boolean>(false);
   const [isLastFrame, setIsLastFrame] = useState<boolean>(false);
+  const [queryList, setQueryList] = useState<string[]>([])
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -403,6 +404,11 @@ const ChatWindow = ({
               createdAt: new Date(),
             },
           ]);
+
+        if (item.message === '改写') {
+          console.log('改写', item);
+          setQueryList(item.results as string[])
+        }
 
         if (item.end_flag) {
           // console.log('清除数据');
@@ -725,6 +731,7 @@ const ChatWindow = ({
               stepLoading={stepLoading}
               isLastFrame={isLastFrame}
               onLast={onLast}
+              queryList={queryList}
             />
           </>
         ) : (

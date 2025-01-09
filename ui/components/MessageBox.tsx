@@ -55,6 +55,7 @@ const MessageBox = ({
   stepLoading,
   isLastFrame,
   onLast,
+  queryList
 }: {
   message: Message;
   messageIndex: number;
@@ -68,6 +69,7 @@ const MessageBox = ({
   stepLoading: boolean;
   isLastFrame: boolean;
   onLast: (event: string) => void;
+  queryList:string[];
 }) => {
   const [parsedMessage, setParsedMessage] = useState(message.content);
   const [speechMessage, setSpeechMessage] = useState(message.content);
@@ -103,9 +105,11 @@ const MessageBox = ({
     const handleLinkClick = (event: MouseEvent) => {
       const target = event.target as HTMLAnchorElement;
       const href = target.getAttribute('href');
-      if (href && href.includes('display'))
+      if (href && href.includes('display')) {
         event.preventDefault(); // 阻止默认跳转行为
-      handleClick(null, href || '')
+
+        handleClick(null, href || '')
+      }
     };
 
     links.forEach(link => {
@@ -153,7 +157,7 @@ const MessageBox = ({
             </h2>
           </div>
           {isLast && loading ? (
-            <Think initialQuery={message.content}></Think>
+            <Think initialQuery={message.content} queryList={queryList}></Think>
           ) : (
             ''
           )}

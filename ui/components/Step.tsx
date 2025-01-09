@@ -132,7 +132,7 @@ const Step: React.FC<StepProps> = ({
               <DisclosureButton className="group flex w-full items-center justify-between relative z-auto">
                 <div className="flex items-center">
                   {/* {steps && steps.length == index + 1 ? ( */}
-                  {loading ? (
+                  {stepLoading ? (
                     <Disc3
                       className={cn(
                         'text-black dark:text-white mr-2',
