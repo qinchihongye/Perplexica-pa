@@ -91,6 +91,8 @@ async def rewrite(rewrite_body: QueryRequest):
         rewrite_time = time.time()
         logger.info(f"改写成功: 改写耗时: {(rewrite_time - verify_time) * 1000:.4f} ms")
         logger.info(f"总耗时: {(rewrite_time - start_time) * 1000:.4f} ms")
+        logger.info(f"\n")
+
         return {"message": "success", "query_combine": query_combine}
     
     except Exception as e:
@@ -166,10 +168,12 @@ async def retrieval(retrieval_body: QueryRequest):
             results = await asyncio.gather(*tasks)
             async_retrieve_time = time.time()
             logger.info(f"异步检索成功: 检索耗时: {(async_retrieve_time - rewrite_time) * 1000:.4f} ms")
-            for result in results:
+            for idx,result in enumerate(results):
                 # result = await task
                 total_results += result
                 if result:
+                    for item in result:
+                        item['idx'] = idx
                     # await asyncio.sleep(1)
                     logger.info(f"已检索：'{result[0]['query']}'")
                     await notify_data_change(
@@ -202,6 +206,7 @@ async def retrieval(retrieval_body: QueryRequest):
             logger.info(f"去重+发送耗时: {(duplicates_time - ws_send_time) * 1000:.4f} ms")
             end_time = time.time()
             logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
+            logger.info(f"\n")
 
             return {"results": final_nodes, "suggestions": []}
 
@@ -224,6 +229,8 @@ async def retrieval(retrieval_body: QueryRequest):
             end_time = time.time()
             logger.info(f"图片检索成功: 检索耗时: {(end_time - verify_time) * 1000:.4f} ms")
             logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
+            logger.info(f"\n")
+
             return {"results": final_nodes, "suggestions": []}
         
         except Exception as e:
@@ -240,7 +247,10 @@ async def retrieval(retrieval_body: QueryRequest):
             end_time = time.time()
             logger.info(f"discovery检索成功: 检索耗时: {(end_time - verify_time) * 1000:.4f} ms")
             logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
+            logger.info(f"\n")
+
             return {"results": final_nodes, "suggestions": []}
+        
         except Exception as e:
             return {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
     
