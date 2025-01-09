@@ -51,6 +51,7 @@ class Zhihuretrieve:
     async def retrieve(self, query_str, time_out=10):
         """Retrieve."""
         params = await self.generate_params(query_str)
+        logger.info(f"Retrieving {query_str} with params {params} to {self.api_url}")
 
         try:
             async with aiohttp.ClientSession() as session:
