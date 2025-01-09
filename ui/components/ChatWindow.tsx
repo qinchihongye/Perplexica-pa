@@ -29,7 +29,7 @@ export interface File {
 
 const clientId = new Date().toISOString();
 
-const useWebSocket = (url: string, setError: (error: boolean) => void, setIsWSReady:(ready: boolean) => void) => {
+const useWebSocket = (url: string, setError: (error: boolean) => void, setIsWSReady: (ready: boolean) => void) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -354,7 +354,7 @@ const ChatWindow = ({
 
   const onLast = (envent: string) => {
     console.log('最后清除数据')
-    setTimeout(()=>{
+    setTimeout(() => {
       setSteps([])
       setStepLoading(false);
       setIsLastFrame(false);
@@ -390,6 +390,19 @@ const ChatWindow = ({
       try {
         // let data = JSON.parse(e.data);
         let item: Item = JSON.parse(e.data);
+        const messageId = crypto.randomBytes(7).toString('hex');
+        setMessageAppeared(true)
+        if(messages[messages.length-1].content==='')
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              content: '',
+              messageId: messageId,
+              chatId: chatId!,
+              role: 'assistant',
+              createdAt: new Date(),
+            },
+          ]);
 
         if (item.end_flag) {
           // console.log('清除数据');
@@ -398,6 +411,7 @@ const ChatWindow = ({
           //   setSteps([]);
           //   setStepLoading(false);
           // }, 500);
+          setMessageAppeared(false)
           setIsLastFrame(true)
           return;
         } else {
@@ -535,6 +549,22 @@ const ChatWindow = ({
         queryList: queryList,
       }),
     );
+
+
+    // if (messages[messages.length - 1].role === 'assistant' && messages[messages.length - 1].content === '') {
+    // } else {
+    //   setMessages((prevMessages) => [
+    //     ...prevMessages,
+    //     {
+    //       content: message,
+    //       messageId: messageId,
+    //       chatId: chatId!,
+    //       role: 'user',
+    //       createdAt: new Date(),
+    //     },
+    //   ]);
+    // }
+    // const initMessage = messages[messages.length - 1];
 
     setMessages((prevMessages) => [
       ...prevMessages,
