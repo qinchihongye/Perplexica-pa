@@ -27,10 +27,12 @@ export const formatTimeDifference = (
 };
 
 
-export const handleClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
-  event.preventDefault(); // 阻止默认的链接跳转行为
-
-  const targetUrl = event.currentTarget.href;
+export const handleClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent> | null, url?: string): void => {
+  var targetUrl = url || '';
+  if(event){
+    event.preventDefault(); // 阻止默认的链接跳转行为
+    targetUrl = event.currentTarget.href;
+  }
   const token = 'd27121560bdb4d9d8a780cb24bf9a399'; 
 
   fetch(`/doc/display${targetUrl.split('display')[1]}`, {
@@ -48,7 +50,7 @@ export const handleClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEven
 <!DOCTYPE html>
 <html>
 <head>
-  <title>JSON Data</title>
+  <title>${targetUrl.split('display')[1]}</title>
   <style>
     body { font-family: monospace; white-space: pre; }
   </style>

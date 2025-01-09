@@ -5,11 +5,6 @@ import MessageInput from './MessageInput';
 import { File, Message } from './ChatWindow';
 import MessageBox from './MessageBox';
 import MessageBoxLoading from './MessageBoxLoading';
-import Step from './Step';
-
-type DataObject<K extends string | number | symbol, V> = {
-  [key in K]: V;
-};
 
 const Chat = ({
   loading,

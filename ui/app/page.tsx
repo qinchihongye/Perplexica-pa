@@ -14,6 +14,7 @@ const Home = () => {
     const sessionLoggedIn = sessionStorage.getItem('isLoggedIn');
     if (sessionLoggedIn === 'true') {
       setIsLoggedIn(true);
+      document.cookie = `token=${process.env.NEXT_PUBLIC_VERIFYTOKEN}; path=/; max-age=3600`;
     }
   }, []);
 

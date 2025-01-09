@@ -9,6 +9,7 @@ import {
 import { Document } from '@langchain/core/documents';
 import { File } from 'lucide-react';
 import { Fragment, useState } from 'react';
+import { handleClick} from '@/lib/utils'
 
 const MessageSources = ({ sources }: { sources: Document[] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,6 +37,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
             source.metadata.url
           }
           target="_blank"
+          onClick={handleClick}
         >
           <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
             {source.metadata.title}
