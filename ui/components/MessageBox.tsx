@@ -104,13 +104,8 @@ const MessageBox = ({
       event.preventDefault(); // 阻止默认跳转行为
       const target = event.target as HTMLAnchorElement;
       const href = target.getAttribute('href');
-      // debugger
-
-      // // 如果链接是 #set-cookie，设置 Cookie
-      // // if (href === '#set-cookie') {
-      //   document.cookie = `token=${process.env.NEXT_PUBLIC_VERIFYTOKEN}; path=/; max-age=3600`;
-      // // }
-      handleClick(null, href || '')
+      if(href && href.includes('display'))
+        handleClick(null, href || '')
     };
 
     links.forEach(link => {
