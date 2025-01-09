@@ -406,7 +406,7 @@ const ChatWindow = ({
           ]);
 
         if (item.message === '改写') {
-          console.log('改写', item);
+          console.log('改写结果:',item.results);
           setQueryList(item.results as string[])
         }
 
@@ -434,7 +434,7 @@ const ChatWindow = ({
           requestAnimationFrame(() => {
             timeoutId = setTimeout(() => {
               setSteps(Array.from(uniqueResults));
-            }, 100)
+            }, 50)
           });
         }
       } catch (e) {
@@ -515,6 +515,7 @@ const ChatWindow = ({
 
   useEffect(() => {
     messagesRef.current = messages;
+    console.log('[DEBUG] messagesRef updated', messages);
   }, [messages]);
 
   useEffect(() => {
@@ -581,6 +582,14 @@ const ChatWindow = ({
         role: 'user',
         createdAt: new Date(),
       },
+      {
+        content: '',
+        messageId: 'sp',
+        chatId: chatId!,
+        role: 'assistant',
+        sources: sources,
+        createdAt: new Date(),
+      }
     ]);
 
     const messageHandler = async (e: MessageEvent) => {
@@ -595,35 +604,48 @@ const ChatWindow = ({
       if (data.type === 'sources') {
         sources = data.data;
         if (!added) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              content: '',
-              messageId: data.messageId,
-              chatId: chatId!,
-              role: 'assistant',
-              sources: sources,
-              createdAt: new Date(),
-            },
-          ]);
-          added = true;
+          // setMessages((prevMessages) => [
+          //   ...prevMessages,
+          //   {
+          //     content: '',
+          //     messageId: data.messageId,
+          //     chatId: chatId!,
+          //     role: 'assistant',
+          //     sources: sources,
+          //     createdAt: new Date(),
+          //   },
+          // ]);
+          // added = true;
+          setMessages((prev) =>
+            prev.map((message) => {
+              // if (message.messageId === data.messageId) {
+              //   return { ...message, content: message.content + data.data, sources: sources };
+              // }
+  
+              if (message.messageId === 'sp') {
+                return { ...message, content: '' , messageId: data.messageId, sources: sources};
+              }
+  
+              return message;
+            }),
+          );
         }
         setMessageAppeared(true);
       }
 
       if (data.type === 'message') {
         if (!added) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              content: data.data,
-              messageId: data.messageId,
-              chatId: chatId!,
-              role: 'assistant',
-              sources: sources,
-              createdAt: new Date(),
-            },
-          ]);
+          // setMessages((prevMessages) => [
+          //   ...prevMessages,
+          //   {
+          //     content: data.data,
+          //     messageId: data.messageId,
+          //     chatId: chatId!,
+          //     role: 'assistant',
+          //     sources: sources,
+          //     createdAt: new Date(),
+          //   },
+          // ]);
           added = true;
         }
 
@@ -631,6 +653,10 @@ const ChatWindow = ({
           prev.map((message) => {
             if (message.messageId === data.messageId) {
               return { ...message, content: message.content + data.data };
+            }
+
+            if (message.messageId === 'sp') {
+              return { ...message, content: message.content + data.data , messageId: data.messageId};
             }
 
             return message;

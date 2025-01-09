@@ -57,6 +57,7 @@ const Think: React.FC<{
   // }, [fetchData, isDataFetched]);
 
   useEffect(() => {
+    console.log('queryList:', queryList);
     if(queryList && queryList.length > 0)
       setQueryCombine(queryList)
   }, [queryList]);

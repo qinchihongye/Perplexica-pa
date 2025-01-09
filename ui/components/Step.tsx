@@ -74,19 +74,32 @@ const Step: React.FC<StepProps> = ({
   const [stoped, setStoped] = useState<boolean>(false);
 
   useEffect(() => {
-    if (ownMessageId.length<1) {
-      if (messageId) {
-        console.log('MessageId', messageId)
-        setOwnMessageId(messageId);
-        onReady?onReady('yes'):null
-      }
+    // setOwnMessageId(messageId);
+    // if (ownMessageId.length<1) {
+    //   if (messageId) {
+    //     console.log('MessageId', messageId)
+    //     setOwnMessageId(messageId);
+    //     onReady?onReady('yes'):null
+    //   }
+    //   else if(messageId==='sp'){
+    //     onReady?onReady('yes'):null
+    //   }
+    // }
+
+    if (messageId) {
+      console.log('MessageId', messageId)
+      setOwnMessageId(messageId);
+      onReady?onReady('yes'):null
     }
 
     if (!stepLoading) setStoped(true);
+    if(stoped){
+      return
+    }
 
     if (
-      messageId == ownMessageId &&
-      !stoped &&
+      // messageId == ownMessageId &&
+      // !stoped &&
       steps &&
       loading &&
       steps.length > 0
