@@ -1,7 +1,7 @@
 import traceback
 import json
 import uuid
-
+import time
 import toml
 from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketDisconnect
@@ -73,12 +73,14 @@ async def healthcheck():
 @measure_time
 async def rewrite(rewrite_body: QueryRequest):
     try:
+        start_time = time.time()
         # 鉴权
         token = rewrite_body.token
         if token != verify_token:
             logger.error(f"token verify error")
             return {"code": -1, "error": "token verify error"}
-        logger.info(f"鉴权成功: body of query: {rewrite_body}")
+        verify_time = time.time()
+        logger.info(f"鉴权成功: 鉴权耗时: {(verify_time - start_time) * 1000:.4f} ms\nbody of query: {rewrite_body}")
 
         query = rewrite_body.query_list[0]
 
@@ -86,7 +88,11 @@ async def rewrite(rewrite_body: QueryRequest):
         rewrite_query_prompt_new = rewrite_query_prompt.format(query, query)
         query_list = await post_completions(rewrite_query_prompt_new)
         query_combine = [query_str for query_str in json.loads(query_list)]
+        rewrite_time = time.time()
+        logger.info(f"改写成功: 改写耗时: {(rewrite_time - verify_time) * 1000:.4f} ms")
+        logger.info(f"总耗时: {(rewrite_time - start_time) * 1000:.4f} ms")
         return {"message": "success", "query_combine": query_combine}
+    
     except Exception as e:
         logger.error(f"{e}: {traceback.format_exc}")
         return {"code": -1, "error": f"{e}: {traceback.format_exc}"}
@@ -116,14 +122,16 @@ async def notify_data_change(new_data: dict):
 @app.post("/retrieval")
 @measure_time
 async def retrieval(retrieval_body: QueryRequest):
+    start_time = time.time()
     # 鉴权
     token = retrieval_body.token
     if token != verify_token:
         logger.error(f"token verify error")
         return {"code": -1, "error": "token verify error"}
+    verify_time = time.time()
+    logger.info(f"鉴权成功: 鉴权耗时: {(verify_time - start_time) * 1000:.4f} ms\nbody of query: {retrieval_body}")
 
     chat_id = str(uuid.uuid4())
-    logger.info(f"鉴权成功: body of query: {retrieval_body}")
     query = retrieval_body.query_list[0]
     opts = retrieval_body.opts
 
@@ -140,6 +148,8 @@ async def retrieval(retrieval_body: QueryRequest):
                     message="改写", results=query_combine, end_flag=0, chat_id=chat_id
                 ).dict()
             )
+            rewrite_time = time.time()
+            logger.info(f"改写成功: 改写耗时: {(rewrite_time - verify_time) * 1000:.4f} ms")
 
             """异步检索"""
             query_list = query_combine
@@ -152,12 +162,16 @@ async def retrieval(retrieval_body: QueryRequest):
                 retrieve_class.retrieve(query_str=sub_query, time_out=time_out) for sub_query in query_list
             ]
             #### 逐个处理任务结果并发送给客户端,在处理完每个任务后立即将结果通过 websocket.send_json() 发送给客户端
-            for task in asyncio.as_completed(tasks):
-                result = await task
+            # for task in asyncio.as_completed(tasks):
+            results = await asyncio.gather(*tasks)
+            async_retrieve_time = time.time()
+            logger.info(f"异步检索成功: 检索耗时: {(async_retrieve_time - rewrite_time) * 1000:.4f} ms")
+            for result in results:
+                # result = await task
                 total_results += result
                 if result:
-                    await asyncio.sleep(1)
-                    logger.info(f"已检索：'{result[0]}'")
+                    # await asyncio.sleep(1)
+                    logger.info(f"已检索：'{result[0]['query']}'")
                     await notify_data_change(
                         Message(
                             message="检索",
@@ -168,6 +182,10 @@ async def retrieval(retrieval_body: QueryRequest):
                             suggestions=[],
                         ).dict()
                     )
+                    await asyncio.sleep(1)
+            ws_send_time = time.time()
+            logger.info(f"websocket已发送检索结果: 检索结果发送耗时: {(ws_send_time - async_retrieve_time) * 1000:.4f} ms")
+            
             #### 去重
             final_nodes = remove_duplicates(total_results)
             #### 在所有任务完成后，发送最终的汇总结果给客户端。发送最终的汇总结果
@@ -180,6 +198,10 @@ async def retrieval(retrieval_body: QueryRequest):
                     suggestions=[],
                 ).model_dump_json()
             )
+            duplicates_time = time.time()
+            logger.info(f"去重+发送耗时: {(duplicates_time - ws_send_time) * 1000:.4f} ms")
+            end_time = time.time()
+            logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
 
             return {"results": final_nodes, "suggestions": []}
 
@@ -199,7 +221,9 @@ async def retrieval(retrieval_body: QueryRequest):
             node_list = await  retrieve_class.retrieve(query_str=query,time_out=time_out)
             # node去重
             final_nodes = remove_duplicates(node_list)
-
+            end_time = time.time()
+            logger.info(f"图片检索成功: 检索耗时: {(end_time - verify_time) * 1000:.4f} ms")
+            logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
             return {"results": final_nodes, "suggestions": []}
         
         except Exception as e:
@@ -213,7 +237,9 @@ async def retrieval(retrieval_body: QueryRequest):
             node_list = await  retrieve_class.retrieve(query_str=query,time_out=time_out)
             # node去重
             final_nodes = remove_duplicates(node_list)
-
+            end_time = time.time()
+            logger.info(f"discovery检索成功: 检索耗时: {(end_time - verify_time) * 1000:.4f} ms")
+            logger.info(f"总耗时: {(end_time - start_time) * 1000:.4f} ms")
             return {"results": final_nodes, "suggestions": []}
         except Exception as e:
             return {"code": -1, "error": f"{e}: {traceback.format_exc()}"}
