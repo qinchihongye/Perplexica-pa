@@ -101,10 +101,10 @@ const MessageBox = ({
     const links: NodeListOf<HTMLAnchorElement> = document.querySelectorAll('a');
 
     const handleLinkClick = (event: MouseEvent) => {
-      event.preventDefault(); // 阻止默认跳转行为
       const target = event.target as HTMLAnchorElement;
       const href = target.getAttribute('href');
       if(href && href.includes('display'))
+        event.preventDefault(); // 阻止默认跳转行为
         handleClick(null, href || '')
     };
 
@@ -160,7 +160,7 @@ const MessageBox = ({
         </div>
       )}
 
-      {message.role === 'assistant' && (
+      {(
         <div style={style(message.messageId)}>
           <div className="flex items-center mb-3">
             <MagnifyingGlassIcon
@@ -175,7 +175,7 @@ const MessageBox = ({
             isLast={isLast}
             loading={loading}
             query={message.content}
-            steps={_steps}
+            steps={steps}
             stepLoading={stepLoading}
             messageId={message.messageId}
             onSeach={handlerSearch}
