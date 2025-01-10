@@ -16,9 +16,9 @@ export const getSuggestions = async (chatHisory: Message[]) => {
   //调用 removeSourcesField 函数，删除每个 Message 对象的 sources 字段
   const source_deleted_history = removeSourcesField(history);
   console.log('删除 sources 字段后的聊天历史:', JSON.stringify(source_deleted_history, null, 2));
-  //截取最后两条消息(最近一轮)
-  const lastTwoHistory = source_deleted_history.slice(-2);
-  console.log('最近一轮的聊天历史:', JSON.stringify(lastTwoHistory, null, 2));
+  //截取最后4条消息(最近两轮)
+  const lastTwoHistory = source_deleted_history.slice(-4);
+  console.log('最近两轮的聊天历史:', JSON.stringify(lastTwoHistory, null, 2));
 
 
   const chatModel = localStorage.getItem('chatModel');
