@@ -55,7 +55,8 @@ const MessageBox = ({
   stepLoading,
   isLastFrame,
   onLast,
-  queryList
+  queryList,
+  queryLoading
 }: {
   message: Message;
   messageIndex: number;
@@ -69,7 +70,8 @@ const MessageBox = ({
   stepLoading: boolean;
   isLastFrame: boolean;
   onLast: (event: string) => void;
-  queryList:string[];
+  queryList: string[];
+  queryLoading: boolean;
 }) => {
   const [parsedMessage, setParsedMessage] = useState(message.content);
   const [speechMessage, setSpeechMessage] = useState(message.content);
@@ -156,12 +158,14 @@ const MessageBox = ({
               {message.content}
             </h2>
           </div>
-          {isLast && loading ? (
-            <Think initialQuery={message.content} queryList={queryList}></Think>
-          ) : (
-            ''
-          )}
+
         </div>
+      )}
+
+      {isLast && queryLoading ? (
+        <Think initialQuery={message.content} queryList={queryList} queryLoading={queryLoading}></Think>
+      ) : (
+        ''
       )}
 
       {message.role === 'assistant' && (
@@ -211,7 +215,7 @@ const MessageBox = ({
                 </div>
               )}
               <div className="flex flex-col space-y-2">
-                <div className="flex flex-row items-center space-x-2">
+                { !queryLoading && <div className="flex flex-row items-center space-x-2">
                   <Disc3
                     className={cn(
                       'text-black dark:text-white',
@@ -222,7 +226,7 @@ const MessageBox = ({
                   <h3 className="text-black dark:text-white font-medium text-xl">
                     Answer
                   </h3>
-                </div>
+                </div>}
                 <Markdown
                   className={cn(
                     'prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0',

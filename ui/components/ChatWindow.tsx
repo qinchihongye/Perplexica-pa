@@ -346,6 +346,7 @@ const ChatWindow = ({
   const [wsConected, setConected] = useState<boolean>(false);
   const [isLastFrame, setIsLastFrame] = useState<boolean>(false);
   const [queryList, setQueryList] = useState<string[]>([])
+  const [queryLoading, setQueryLoading] = useState<boolean>(false)
 
   const ws = useSocket(
     process.env.NEXT_PUBLIC_WS_URL!,
@@ -391,22 +392,23 @@ const ChatWindow = ({
       try {
         // let data = JSON.parse(e.data);
         let item: Item = JSON.parse(e.data);
-        const messageId = crypto.randomBytes(7).toString('hex');
-        setMessageAppeared(true)
-        if(messages[messages.length-1].content==='')
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              content: '',
-              messageId: messageId,
-              chatId: chatId!,
-              role: 'assistant',
-              createdAt: new Date(),
-            },
-          ]);
+        // const messageId = crypto.randomBytes(7).toString('hex');
+        // setMessageAppeared(true)
+        // if(messages[messages.length-1].content==='')
+        //   setMessages((prevMessages) => [
+        //     ...prevMessages,
+        //     {
+        //       content: '',
+        //       messageId: messageId,
+        //       chatId: chatId!,
+        //       role: 'assistant',
+        //       createdAt: new Date(),
+        //     },
+        //   ]);
 
         if (item.message === '改写') {
           console.log('改写结果:',item.results);
+          setQueryLoading(true)
           setQueryList(item.results as string[])
         }
 
@@ -634,6 +636,7 @@ const ChatWindow = ({
       }
 
       if (data.type === 'message') {
+        setQueryLoading(false)
         if (!added) {
           // setMessages((prevMessages) => [
           //   ...prevMessages,
@@ -758,6 +761,7 @@ const ChatWindow = ({
               isLastFrame={isLastFrame}
               onLast={onLast}
               queryList={queryList}
+              queryLoading={queryLoading}
             />
           </>
         ) : (

@@ -13,7 +13,8 @@ interface ResponseProps {
 const Think: React.FC<{
   initialQuery: string;
   queryList: string[];
-}> = ({ initialQuery, queryList }) => {
+  queryLoading: boolean;
+}> = ({ initialQuery, queryList, queryLoading }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [dots, setDots] = useState('');
   const [queryCombineStep, setQueryCombineStep] = useState<string>('');
