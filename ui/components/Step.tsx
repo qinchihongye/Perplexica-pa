@@ -70,7 +70,7 @@ const Step: React.FC<StepProps> = ({
   keysList,
 }) => {
   const [_steps, setSteps] = useState<Item[]>([]);
-  const [keys, setkeys] = useState<string[]>([]);
+  const [keys, setkeys] = useState<string[]>(['1','2','3']);
   const [isOpen, setIsOpen] = useState<{ [key: string]: boolean }>({});
   const [ownMessageId, setOwnMessageId] = useState<string>('');
   const [stoped, setStoped] = useState<boolean>(false);
