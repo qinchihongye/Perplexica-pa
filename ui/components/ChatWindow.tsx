@@ -355,13 +355,14 @@ const ChatWindow = ({
   );
 
   const onLast = (envent: string) => {
-    console.log('最后清除数据')
-    setTimeout(() => {
-      setQueryList([])
-      setSteps([])
-      setStepLoading(false);
-      setIsLastFrame(false);
-    }, 500)
+    console.log('最后一步')
+    setStepLoading(false);
+    setIsLastFrame(false);
+    // setTimeout(() => {
+    //   setQueryList([])
+    //   setSteps([])
+    //   setStepLoading(false);
+    // }, 500)
   }
 
   const { ws: stepWs, isReady: stepIsReady } = useWebSocket(
@@ -394,7 +395,7 @@ const ChatWindow = ({
         let item: Item = JSON.parse(e.data);
 
         if (item.message === '改写') {
-          console.log('改写结果:',item.results);
+          console.log('改写结果:', item.results);
           setQueryList(item.results as string[])
           setQueryLoading(true)
         }
@@ -531,6 +532,11 @@ const ChatWindow = ({
     const last_2_round = chatHistory.slice(-4)
     console.log('最近两轮轮的历史记录',last_2_round)
     console.log('即将问的问题',message)
+
+    setQueryList([])
+    setSteps([])
+    setStepLoading(false);
+
     ws?.send(
       JSON.stringify({
         type: 'message',
@@ -611,11 +617,11 @@ const ChatWindow = ({
               // if (message.messageId === data.messageId) {
               //   return { ...message, content: message.content + data.data, sources: sources };
               // }
-  
+
               if (message.messageId === 'sp') {
-                return { ...message, content: '' , messageId: data.messageId, sources: sources};
+                return { ...message, content: '', messageId: data.messageId, sources: sources };
               }
-  
+
               return message;
             }),
           );
@@ -647,7 +653,7 @@ const ChatWindow = ({
             }
 
             if (message.messageId === 'sp') {
-              return { ...message, content: message.content + data.data , messageId: data.messageId};
+              return { ...message, content: message.content + data.data, messageId: data.messageId };
             }
 
             return message;

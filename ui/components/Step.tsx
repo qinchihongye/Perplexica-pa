@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Disclosure,
   DisclosureButton,
@@ -68,30 +68,21 @@ const Step: React.FC<StepProps> = ({
   onLast,
   onSteps,
   keysList,
+  isLast,
 }) => {
+  const ownMessageIdRef = useRef<string>(messageId);
+  const currentKeysRef = useRef<string[]>(keysList || []);
+  const currentStepsRef = useRef<Item[]>(steps || []);
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState<{ [key: string]: boolean }>({});
-  const [ownMessageId, setOwnMessageId] = useState<string>('');
   const [stoped, setStoped] = useState<boolean>(false);
 
   useEffect(() => {
-    // setOwnMessageId(messageId);
-    // if (ownMessageId.length<1) {
-    //   if (messageId) {
-    //     console.log('MessageId', messageId)
-    //     setOwnMessageId(messageId);
-    //     onReady?onReady('yes'):null
-    //   }
-    //   else if(messageId==='sp'){
-    //     onReady?onReady('yes'):null
-    //   }
-    // }
-    setOwnMessageId(messageId);
-    if (messageId && ownMessageId!=='sp') {
+    if (messageId && !isLastFrame && isLast) {
       console.log('MessageId', messageId)
-      setOwnMessageId(messageId);
-      onReady?onReady('yes'):null
+      ownMessageIdRef.current = messageId;
+      onReady?.('yes');
     }
 
     if (!stepLoading) setStoped(true);
@@ -99,51 +90,43 @@ const Step: React.FC<StepProps> = ({
       return
     }
 
-    if (
-      // messageId == ownMessageId &&
-      // !stoped &&
-      steps &&
-      loading &&
-      steps.length > 0
-    ) {
+    if (!stoped && steps && loading && steps.length > 0 && !isLastFrame && isLast) {
       console.log('Steps:', steps);
-      onStepChange?onStepChange(ownMessageId):null
-      const s = new Set(steps)
+      onStepChange?.(ownMessageIdRef.current);
+      const s = new Set(steps);
       setSteps(Array.from(s));
-      onReady?onReady('yes'):null
-      // const keysSet = new Set(keys);
-      // steps.map((it) => {
-      //   if (it.query) keysSet.add(it.query);
-      // });
-      // setkeys(Array.from(keysSet));
-      // console.log('Keys', keys);
+      onReady?.('yes');
+      currentStepsRef.current = Array.from(s);
+    } else if (steps && steps.length === 0) {
+      // 如果 steps 为空数组，不更新状态
+      return;
     }
-  }, [messageId, ownMessageId, steps, loading, ownMessageId, stepLoading, stoped]);
+  }, [messageId, steps, loading, stepLoading, stoped, isLastFrame, isLast]);
 
   useEffect(() => {
-    if (loading) {
-      onSeach?onSeach(messageId):null
+    if (loading && !isLastFrame) {
+      onSeach?.(messageId);
       const keysSet = new Set(keys);
       _steps.map((it) => {
         if (it.query) keysSet.add(it.query);
       });
       setkeys(Array.from(keysSet));
-      // console.log('Keys', keys);
+      currentKeysRef.current = Array.from(keysSet);
     }
-    onSteps?onSteps(_steps):null;
-  }, [loading, messageId]);
-
-  // }, [_steps, loading, messageId, ownMessageId]);
-
+    onSteps?.(_steps);
+  }, [loading, messageId, isLastFrame, isLast]);
 
   useEffect(() => {
-   if(keysList && keysList.length>0){
-    setkeys(keysList)
-    // onReady?onReady('yes'):null
-    onStepChange?onStepChange(ownMessageId):null
-   }
-   console.log('keys', keys)
-  }, [keysList]);
+    if (keysList && keysList.length > 0 && !isLastFrame && isLast) {
+      setkeys(keysList);
+      onStepChange?.(ownMessageIdRef.current);
+      currentKeysRef.current = keysList;
+    } else if (keysList && keysList.length === 0) {
+      // 如果 keysList 为空数组，不更新状态
+      return;
+    }
+    console.log('keys', keys);
+  }, [keysList, isLastFrame, isLast]);
 
   useEffect(()=>{
     if(isLastFrame)
@@ -152,7 +135,7 @@ const Step: React.FC<StepProps> = ({
 
   return (
     <div className="divide-y w-full divide-white/5 rounded-xl bg-white/5 mb-5 ml-0">
-      {keys.length?keys.map((key, index) => (
+      {currentKeysRef.current && currentKeysRef.current.length? keys.map((key, index) => (
         <Disclosure
           key={index}
           as="div"
@@ -165,8 +148,7 @@ const Step: React.FC<StepProps> = ({
             <>
               <DisclosureButton className="group flex w-full items-center justify-between relative z-auto">
                 <div className="flex items-center">
-                  {/* {steps && steps.length == index + 1 ? ( */}
-                  {stepLoading ? (
+                  {stepLoading && isLast ? (
                     <Disc3
                       className={cn(
                         'text-black dark:text-white mr-2',
@@ -182,7 +164,6 @@ const Step: React.FC<StepProps> = ({
                   </span>
                 </div>
                 <ChevronDownIcon className="size-5 dark:fill-white/60 group-data-[hover]:fill-white/50 group-data-[open]:rotate-180" />
-                {/* 步骤条 */}
                 {index !== keys.length - 1 && (
                   <div
                     className={clsx(
@@ -195,10 +176,10 @@ const Step: React.FC<StepProps> = ({
               </DisclosureButton>
               <DisclosurePanel className="mt-2 text-sm/5 text-white/50">
                 <p className="text-sm/6 font-medium dark:text-white/60 text-black ml-2 p-2">
-                  {loading ? 'Reading' : 'Documents'}
+                  {loading && isLast ? 'Reading' : 'Documents'}
                 </p>
                 <ul className="flex flex-row flex-wrap ml-5">
-                  {_steps
+                  {currentStepsRef.current && currentStepsRef.current
                     .filter((it) => {
                       return it.query === key;
                     })
@@ -215,11 +196,6 @@ const Step: React.FC<StepProps> = ({
                           />
                           <a
                             href={
-                              // result.url.split('/display/')[0] +
-                              // '/display/' +
-                              // encodeURIComponent(
-                              //   result.url.split('/display/')[1],
-                              // )
                               result.url
                             }
                             className="text-sm font-medium text-black dark:text-white hover:text-black/60 dark:hover:text-white/80"
@@ -231,7 +207,6 @@ const Step: React.FC<StepProps> = ({
                               : result.title.slice(0, 10) + '...'}
                           </a>
                         </li>
-                        {/* 弹出层内容 */}
                         <div className="hidden group-hover:animate-fadeIn group-hover:duration-1000 group-hover:block absolute z-10 bg-white dark:bg-gray-800 text-black dark:text-white rounded-lg p-2 shadow-lg w-80">
                           <p className="text-sm">
                             {result.content.length < 200
