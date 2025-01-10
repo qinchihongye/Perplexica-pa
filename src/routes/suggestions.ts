@@ -23,6 +23,8 @@ interface SuggestionsBody {
 router.post('/', async (req, res) => {
   try {
     let body: SuggestionsBody = req.body;
+    // 打印 req.body
+    logger.info('建议函数收到的 body', req.body);
 
     const chatHistory = body.chatHistory.map((msg: any) => {
       if (msg.role === 'user') {
@@ -31,6 +33,8 @@ router.post('/', async (req, res) => {
         return new AIMessage(msg.content);
       }
     });
+    // 打印转换后的 chatHistory
+    // logger.info('建议转换后的 chatHistory', chatHistory);
 
     const chatModelProviders = await getAvailableChatModelProviders();
 

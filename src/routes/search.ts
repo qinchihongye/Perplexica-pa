@@ -36,7 +36,7 @@ interface ChatRequestBody {
 router.post('/', async (req, res) => {
   try {
     const body: ChatRequestBody = req.body;
-
+    logger.info('Chat function received body', req.body)
     if (!body.focusMode || !body.query) {
       return res.status(400).json({ message: 'Missing focus mode or query' });
     }

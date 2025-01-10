@@ -106,9 +106,10 @@ export const handleMessage = async (
 ) => {
   try {
     const parsedWSMessage = JSON.parse(message) as WSMessage;
+    logger.info(`handleMessage接收的 message: ${message}`);
     const parsedMessage = parsedWSMessage.message;
 
-    if (parsedWSMessage.files.length > 0) {
+    if (parsedWSMessage.files.length > 0) { 
       /* TODO: Implement uploads in other classes/single meta class system*/
       parsedWSMessage.focusMode = 'webSearch';
     }

@@ -526,7 +526,11 @@ const ChatWindow = ({
     let added = false;
 
     messageId = messageId ?? crypto.randomBytes(7).toString('hex');
-
+    console.log('当前所有聊天历史记录',chatHistory)
+    // 保留两轮记录
+    const last_2_round = chatHistory.slice(-4)
+    console.log('最近两轮轮的历史记录',last_2_round)
+    console.log('即将问的问题',message)
     ws?.send(
       JSON.stringify({
         type: 'message',
@@ -538,7 +542,7 @@ const ChatWindow = ({
         files: fileIds,
         focusMode: focusMode,
         optimizationMode: optimizationMode,
-        history: [...chatHistory, ['human', message]],
+        history: [...last_2_round, ['human', message]],
         queryList: queryList,
       }),
     );
