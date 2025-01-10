@@ -357,6 +357,7 @@ const ChatWindow = ({
   const onLast = (envent: string) => {
     console.log('最后清除数据')
     setTimeout(() => {
+      setQueryList([])
       setSteps([])
       setStepLoading(false);
       setIsLastFrame(false);

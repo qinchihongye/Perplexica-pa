@@ -99,7 +99,7 @@ const MessageBox = ({
   }
 
   const style = (mId: string) => {
-    return { display: queryList && queryList.length ? 'block' : 'none' }
+    return { display: stepList.has(mId) ? 'block' : 'none' }
   }
 
   useEffect(() => {
