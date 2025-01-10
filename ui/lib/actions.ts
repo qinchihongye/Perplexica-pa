@@ -18,7 +18,7 @@ export const getSuggestions = async (chatHisory: Message[]) => {
   console.log('删除 sources 字段后的聊天历史:', JSON.stringify(source_deleted_history, null, 2));
   //截取最后两条消息(最近一轮)
   const lastTwoHistory = source_deleted_history.slice(-2);
-  console.log('最近一轮的聊天历史:', JSON.stringify(lastTwoHistory, null, 2));
+  console.log('最近两轮的聊天历史:', JSON.stringify(lastTwoHistory, null, 2));
 
 
   const chatModel = localStorage.getItem('chatModel');
