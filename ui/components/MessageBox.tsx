@@ -79,6 +79,7 @@ const MessageBox = ({
   const [_steps, setSteps] = useState<Object[]>([])
   const [stepList, setStepList] = useState(new Set())
   const [childSteps, setChildSteps] = useState<Item[]>([]);
+  const [stepIsShow, setStepIsShow] = useState(false);
 
   const handlerSearch = (mId: string) => {
     const uniqueResults = new Set([...Array.from(messageIdList), mId]);
@@ -87,13 +88,14 @@ const MessageBox = ({
 
   const handelerReady = (status: string) => {
     if (status === 'yes') {
-      setSteps(steps)
+      // setSteps(steps)
     }
   }
 
   const handelerStepChange = (mId: string) => {
     const uni = Array.from(stepList)
     setStepList(new Set([...uni, mId]))
+    setStepIsShow(true);
   }
 
   const style = (mId: string) => {
@@ -162,7 +164,7 @@ const MessageBox = ({
         </div>
       )}
 
-      {isLast && queryLoading ? (
+      {isLast && queryLoading && !stepIsShow? (
         <Think initialQuery={message.content} queryList={queryList} queryLoading={queryLoading}></Think>
       ) : (
         ''
@@ -191,6 +193,7 @@ const MessageBox = ({
             onStepChange={handelerStepChange}
             isLastFrame={isLastFrame}
             onLast={onLast}
+            keysList={queryList}
           ></Step>
         </div>
       )

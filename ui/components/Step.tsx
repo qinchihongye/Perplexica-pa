@@ -53,6 +53,7 @@ interface StepProps {
   isLastFrame: boolean
   onLast: ChildEventCallback
   onSteps?: (eventData: Item[]) => void;
+  keysList?: string[];
 }
 
 const Step: React.FC<StepProps> = ({
@@ -66,6 +67,7 @@ const Step: React.FC<StepProps> = ({
   isLastFrame,
   onLast,
   onSteps,
+  keysList,
 }) => {
   const [_steps, setSteps] = useState<Item[]>([]);
   const [keys, setkeys] = useState<string[]>([]);
@@ -85,8 +87,8 @@ const Step: React.FC<StepProps> = ({
     //     onReady?onReady('yes'):null
     //   }
     // }
-
-    if (messageId) {
+    setOwnMessageId(messageId);
+    if (messageId && ownMessageId!=='sp') {
       console.log('MessageId', messageId)
       setOwnMessageId(messageId);
       onReady?onReady('yes'):null
@@ -108,21 +110,39 @@ const Step: React.FC<StepProps> = ({
       onStepChange?onStepChange(ownMessageId):null
       const s = new Set(steps)
       setSteps(Array.from(s));
+      onReady?onReady('yes'):null
+      // const keysSet = new Set(keys);
+      // steps.map((it) => {
+      //   if (it.query) keysSet.add(it.query);
+      // });
+      // setkeys(Array.from(keysSet));
+      // console.log('Keys', keys);
     }
   }, [messageId, ownMessageId, steps, loading, ownMessageId, stepLoading, stoped]);
 
   useEffect(() => {
-    if (loading && messageId == ownMessageId) {
+    if (loading) {
       onSeach?onSeach(messageId):null
       const keysSet = new Set(keys);
       _steps.map((it) => {
         if (it.query) keysSet.add(it.query);
       });
       setkeys(Array.from(keysSet));
-      console.log('Keys', keys);
+      // console.log('Keys', keys);
     }
     onSteps?onSteps(_steps):null;
-  }, [_steps, loading, messageId, ownMessageId]);
+  }, [loading, messageId]);
+
+  // }, [_steps, loading, messageId, ownMessageId]);
+
+
+  useEffect(() => {
+   if(keysList && keysList.length>0){
+    setkeys(keysList)
+    // onReady?onReady('yes'):null
+   }
+   console.log('keys', keys)
+  }, [keysList]);
 
   useEffect(()=>{
     if(isLastFrame)

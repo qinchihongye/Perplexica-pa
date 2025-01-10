@@ -59,8 +59,10 @@ const Think: React.FC<{
 
   useEffect(() => {
     console.log('queryList:', queryList);
-    if(queryList && queryList.length > 0)
+    if(queryList && queryList.length > 0){
       setQueryCombine(queryList)
+      setCurrentStep((prevStep) => prevStep + 1);
+    }
   }, [queryList]);
 
 

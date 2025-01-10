@@ -390,37 +390,18 @@ const ChatWindow = ({
     // let end_flag = 0;
     const stepMessageHandler = (e: MessageEvent) => {
       try {
-        // let data = JSON.parse(e.data);
         let item: Item = JSON.parse(e.data);
-        // const messageId = crypto.randomBytes(7).toString('hex');
-        // setMessageAppeared(true)
-        // if(messages[messages.length-1].content==='')
-        //   setMessages((prevMessages) => [
-        //     ...prevMessages,
-        //     {
-        //       content: '',
-        //       messageId: messageId,
-        //       chatId: chatId!,
-        //       role: 'assistant',
-        //       createdAt: new Date(),
-        //     },
-        //   ]);
 
         if (item.message === '改写') {
           console.log('改写结果:',item.results);
-          setQueryLoading(true)
           setQueryList(item.results as string[])
+          setQueryLoading(true)
         }
 
         if (item.end_flag) {
-          // console.log('清除数据');
-          // setTimeout(() => {
-          //   console.log('清除数据');
-          //   setSteps([]);
-          //   setStepLoading(false);
-          // }, 500);
           setMessageAppeared(false)
           setIsLastFrame(true)
+          setQueryLoading(false)
           return;
         } else {
           setStepLoading(true);
@@ -433,11 +414,13 @@ const ChatWindow = ({
           );
           const uniqueResults = new Set([...filteredResults, ...steps]);
 
-          requestAnimationFrame(() => {
-            timeoutId = setTimeout(() => {
-              setSteps(Array.from(uniqueResults));
-            }, 50)
-          });
+          setSteps(Array.from(uniqueResults));
+
+          // requestAnimationFrame(() => {
+          //   timeoutId = setTimeout(() => {
+          //     setSteps(Array.from(uniqueResults));
+          //   }, 100)
+          // });
         }
       } catch (e) {
         console.error(e);
@@ -517,7 +500,7 @@ const ChatWindow = ({
 
   useEffect(() => {
     messagesRef.current = messages;
-    console.log('[DEBUG] messagesRef updated', messages);
+    // console.log('[DEBUG] messagesRef updated', messages);
   }, [messages]);
 
   useEffect(() => {
