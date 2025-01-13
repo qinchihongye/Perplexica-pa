@@ -186,7 +186,8 @@ async def retrieval(retrieval_body: QueryRequest):
                             suggestions=[],
                         ).dict()
                     )
-                    await asyncio.sleep(1)
+                    # await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
             ws_send_time = time.time()
             logger.info(f"websocket已发送检索结果: 检索结果发送耗时: {(ws_send_time - async_retrieve_time) * 1000:.4f} ms")
             
