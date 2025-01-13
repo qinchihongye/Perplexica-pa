@@ -28,6 +28,7 @@ services:
         - NEXT_PUBLIC_PY_API=http://host.docker.internal
         - NEXT_PUBLIC_PYWS_API=ws://127.0.0.1
         - NEXT_PUBLIC_PY_PORT=8013
+        - NEXT_PUBLIC_VERIFYTOKEN=d27121560bdb4d9d8a780cb24bf9a399
     image: itzcrazykns1337/perplexica-frontend:latest
     environment:
       - NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api

@@ -90,7 +90,7 @@ const Step: React.FC<StepProps> = ({
       return
     }
 
-    if (!stoped && steps && loading && steps.length > 0 && !isLastFrame && isLast) {
+    if (steps && steps.length > 0 && isLast) {
       console.log('Steps:', steps);
       onStepChange?.(ownMessageIdRef.current);
       const s = new Set(steps);
